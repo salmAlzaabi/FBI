@@ -2,68 +2,100 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FBI System - Mobile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FBI HQ - Mobile System</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
-    <section id="login-page" class="active">
-        <div class="header-logo">
-            <div class="logo">FBI</div>
-            <p>نظام الإدارة المركزية</p>
-        </div>
-        <div class="login-container">
-            <input type="email" id="email" placeholder="البريد الإلكتروني">
-            <input type="password" id="password" placeholder="كلمة المرور">
-            <button onclick="login()">دخول</button>
-            <p style="font-size: 12px; color: gray; margin-top: 10px;">الحساب التجريبي: admin@fbi.gov | 123456</p>
+    <section id="login-page" class="page active-page">
+        <div class="glass-card">
+            <div class="fbi-badge">
+                <i class="fas fa-shield-halved"></i>
+            </div>
+            <h1>FEDERAL BUREAU</h1>
+            <p>نظام التحقيقات الفيدرالي</p>
+            <div class="input-group">
+                <input type="email" id="email" placeholder="البريد الإلكتروني">
+                <input type="password" id="password" placeholder="كلمة المرور">
+            </div>
+            <button class="main-btn" onclick="login()">دخول آمن</button>
         </div>
     </section>
 
-    <section id="dashboard" class="hidden">
+    <section id="main-app" class="page">
         <nav class="top-nav">
-            <span>لوحة التحكم</span>
-            <div class="user-info" onclick="toggleLogout()">
+            <div class="logo-small">FBI</div>
+            <div class="user-profile" onclick="toggleLogout()">
                 <span id="user-display-name">المسؤول</span>
-                <div id="logout-menu" class="hidden">تسجيل الخروج</div>
+                <div id="logout-menu" class="dropdown hidden">تسجيل الخروج</div>
             </div>
         </nav>
 
-        <div class="stats-grid">
-            <div class="stat-card"><h3>150</h3><p>السجلات</p></div>
-            <div class="stat-card"><h3>42</h3><p>القضايا</p></div>
-            <div class="stat-card"><h3>12</h3><p>الموظفين</p></div>
-        </div>
-
-        <div class="bottom-bar">
-            <button onclick="showPage('dashboard')">الرئيسية</button>
-            <button id="nav-emp" onclick="showPage('employees')">الموظفين</button>
-            <button onclick="showPage('chat')">الشات</button>
-            <button id="nav-logs" onclick="showPage('logs')">السجلات</button>
-        </div>
-    </section>
-
-    <section id="employees" class="hidden page-content">
-        <h2>إدارة الموظفين</h2>
-        <button class="add-btn" onclick="openModal()">+ إضافة موظف</button>
-        <div id="staff-list">
+        <main id="content-area">
+            <div id="dashboard" class="sub-page">
+                <div class="stats-container">
+                    <div class="stat-card"><h3>1,240</h3><p>السجلات</p></div>
+                    <div class="stat-card"><h3>85</h3><p>القضايا</p></div>
+                    <div class="stat-card" id="emp-count-card"><h3>1</h3><p>الموظفين</p></div>
+                </div>
+                <div class="welcome-banner">
+                    <h4>مرحباً بك في النظام المركزي</h4>
+                    <p>تأكد من تحديث سجلاتك دورياً.</p>
+                </div>
             </div>
+
+            <div id="employees" class="sub-page hidden">
+                <div class="page-header">
+                    <h2>إدارة الكوادر</h2>
+                    <button class="add-btn-round" onclick="toggleModal(true)">+</button>
+                </div>
+                <div id="staff-list" class="list-container">
+                    </div>
+            </div>
+
+            <div id="chat" class="sub-page hidden">
+                <div id="chat-box"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="msg-input" placeholder="رسالة مشفرة...">
+                    <button onclick="sendMsg()"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+
+            <div id="logs" class="sub-page hidden">
+                <h2>السجلات الأمنية</h2>
+                <div id="log-list" class="log-container"></div>
+            </div>
+        </main>
+
+        <nav class="bottom-nav">
+            <div class="nav-item" onclick="showPage('dashboard')"><i class="fas fa-home"></i><span>الرئيسية</span></div>
+            <div class="nav-item" id="nav-emp" onclick="showPage('employees')"><i class="fas fa-users"></i><span>الموظفين</span></div>
+            <div class="nav-item" onclick="showPage('chat')"><i class="fas fa-comment-dots"></i><span>الشات</span></div>
+            <div class="nav-item" id="nav-logs" onclick="showPage('logs')"><i class="fas fa-file-contract"></i><span>السجلات</span></div>
+        </nav>
     </section>
 
-    <section id="chat" class="hidden page-content">
-        <h2>غرفة العمليات</h2>
-        <div id="chat-box"></div>
-        <div class="chat-input">
-            <input type="text" id="msg-input" placeholder="اكتب رسالة...">
-            <button onclick="sendMsg()">إرسال</button>
+    <div id="emp-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>إضافة موظف جديد</h3>
+            <input type="text" id="new-name" placeholder="الاسم الكامل">
+            <select id="new-role">
+                <option value="عادية">صلاحية عادية</option>
+                <option value="متوسطة">صلاحية متوسطة</option>
+                <option value="مطلقة">صلاحية مطلقة</option>
+            </select>
+            <input type="text" id="new-code" placeholder="الكود الوظيفي">
+            <input type="text" id="new-rank" placeholder="الرتبة">
+            <input type="email" id="new-email" placeholder="الايميل (للدخول)">
+            <input type="password" id="new-pass" placeholder="الباسورد">
+            <div class="modal-btns">
+                <button class="save-btn" onclick="addNewEmployee()">حفظ</button>
+                <button class="cancel-btn" onclick="toggleModal(false)">إلغاء</button>
+            </div>
         </div>
-    </section>
-
-    <section id="logs" class="hidden page-content">
-        <h2>سجل النظام (Logs)</h2>
-        <div id="log-list"></div>
-    </section>
+    </div>
 
     <script src="script.js"></script>
 </body>
