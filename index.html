@@ -3,38 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MDT | MOBILE HQ</title>
+    <title>LSPD | NEXT GEN MDT</title>
     
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;500;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+        :root {
+            --bg-dark: #09090b;
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-red: #ef4444;
+            --glass: rgba(24, 24, 27, 0.6);
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: #05080f; color: #f1f5f9; overflow: hidden; height: 100vh; position: fixed; width: 100%; }
-
-        /* تأثيرات الانيميشن */
-        .fade-in { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* ستايل الموبايل الخاص */
-        .mobile-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(59, 130, 246, 0.1); border-radius: 16px; transition: 0.3s; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 75px; background: #0f172a; border-top: 1px solid #1e293b; display: flex; justify-content: space-around; align-items: center; z-index: 2000; padding-bottom: env(safe-area-inset-bottom); }
-        .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #64748b; font-size: 10px; font-weight: 700; transition: 0.3s; }
-        .nav-btn.active { color: #3b82f6; }
-        .nav-btn i { font-size: 20px; }
-
-        .header-glass { position: fixed; top: 0; left: 0; right: 0; height: 65px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); z-index: 1000; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid rgba(59, 130, 246, 0.2); }
+        body { background-color: var(--bg-dark); color: #e4e4e7; overflow: hidden; height: 100vh; width: 100vw; }
         
-        input, select, textarea { background: #1e293b !important; border: 1px solid #334155 !important; color: white !important; border-radius: 12px; padding: 14px; width: 100%; outline: none; appearance: none; }
+        /* خلفية شبكية خفيفة */
+        body::before {
+            content: ""; position: absolute; inset: 0;
+            background-image: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+                              linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            z-index: -1; pointer-events: none;
+        }
+
+        /* سكرول بار مخفي */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Inputs & Forms */
+        .glass-input {
+            background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border);
+            border-radius: 12px; color: white; padding: 16px; width: 100%;
+            transition: 0.3s; outline: none; font-size: 14px;
+        }
+        .glass-input:focus { border-color: var(--accent-blue); box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
+
+        /* Cards */
+        .cyber-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+            backdrop-filter: blur(10px); border: 1px solid var(--border);
+            border-radius: 16px; overflow: hidden; position: relative;
+        }
         
-        .main-container { height: 100vh; overflow-y: auto; padding: 80px 15px 100px 15px; scroll-behavior: smooth; }
+        /* Animations */
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         
-        /* زر الإضافة العائم */
-        .fab { position: fixed; bottom: 90px; left: 20px; width: 55px; height: 55px; background: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); z-index: 1500; font-size: 24px; color: white; }
+        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 5px var(--accent-red); } 50% { box-shadow: 0 0 20px var(--accent-red); } }
+        .status-red { animation: pulse-glow 2s infinite; }
+
+        /* Bottom Nav */
+        .nav-glass {
+            background: rgba(9, 9, 11, 0.85); backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom);
+        }
+        .nav-item.active { color: var(--accent-cyan); text-shadow: 0 0 10px rgba(6, 182, 212, 0.6); }
+        .nav-item.active i { transform: translateY(-4px); }
     </style>
 </head>
 <body>
@@ -58,165 +92,277 @@
     </script>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useMemo } = React;
 
+        /* --- Components --- */
+        
+        // بطاقة الإحصائيات العلوية
+        const StatCard = ({ title, value, icon, color }) => (
+            <div className="cyber-card p-4 flex flex-col justify-between h-24 relative overflow-hidden group">
+                <div className={`absolute -right-4 -top-4 w-20 h-20 bg-${color}-500/10 rounded-full blur-xl group-hover:bg-${color}-500/20 transition-all`}></div>
+                <div className="flex justify-between items-start z-10">
+                    <span className="text-gray-400 text-xs font-bold tracking-wider">{title}</span>
+                    <i className={`fas ${icon} text-${color}-500 text-lg`}></i>
+                </div>
+                <span className="text-3xl font-black font-[Rajdhani] z-10">{value}</span>
+            </div>
+        );
+
+        // بطاقة المطلوبين
+        const WantedCard = ({ data }) => (
+            <div className="cyber-card mb-4 flex gap-4 p-3 animate-slide-up border-r-2 border-r-red-500">
+                <img src={data.photo || 'https://via.placeholder.com/150'} className="w-20 h-20 rounded-xl object-cover bg-gray-800" />
+                <div className="flex-1 flex flex-col justify-center">
+                    <div className="flex justify-between items-start">
+                        <h3 className="text-lg font-bold text-white leading-tight">{data.name}</h3>
+                        <span className="bg-red-500/20 text-red-500 text-[10px] px-2 py-1 rounded font-bold uppercase tracking-wider animate-pulse">مطلوب</span>
+                    </div>
+                    <p className="text-gray-400 text-xs mt-1 line-clamp-2">{data.charge}</p>
+                    <div className="mt-2 flex gap-2">
+                        <button className="text-[10px] bg-white/5 hover:bg-white/10 px-3 py-1 rounded border border-white/5 transition">التفاصيل</button>
+                    </div>
+                </div>
+            </div>
+        );
+
+        // التطبيق الرئيسي
         const App = () => {
-            const [isLoggedIn, setIsLoggedIn] = useState(false);
-            const [currentUser, setCurrentUser] = useState(null);
-            const [page, setPage] = useState('dashboard');
-            const [users, setUsers] = useState([]);
-            const [wanted, setWanted] = useState([]);
-            const [reports, setReports] = useState([]);
+            const [user, setUser] = useState(null);
+            const [view, setView] = useState('login'); // login, home, wanted, reports, civil
+            const [data, setData] = useState({ users: [], wanted: [], reports: [], civilians: [] });
+            const [loading, setLoading] = useState(true);
             const [modal, setModal] = useState(null);
 
+            // جلب البيانات
             useEffect(() => {
                 if (!window.fb) return;
                 const db = window.fb.db;
-                window.fb.onSnapshot(window.fb.collection(db, "users"), s => setUsers(s.docs.map(d => ({...d.data(), fbId: d.id}))));
-                window.fb.onSnapshot(window.fb.collection(db, "wanted"), s => setWanted(s.docs.map(d => ({...d.data(), fbId: d.id}))));
-                window.fb.onSnapshot(window.fb.query(window.fb.collection(db, "field_reports"), window.fb.orderBy("createdAt", "desc")), s => setReports(s.docs.map(d => ({...d.data(), fbId: d.id}))));
+                const unsubs = [
+                    window.fb.onSnapshot(window.fb.collection(db, "users"), s => setData(p => ({...p, users: s.docs.map(d => ({...d.data(), id: d.id}))}))),
+                    window.fb.onSnapshot(window.fb.collection(db, "wanted"), s => setData(p => ({...p, wanted: s.docs.map(d => ({...d.data(), id: d.id}))}))),
+                    window.fb.onSnapshot(window.fb.query(window.fb.collection(db, "field_reports"), window.fb.orderBy("createdAt", "desc")), s => setData(p => ({...p, reports: s.docs.map(d => ({...d.data(), id: d.id}))}))),
+                    window.fb.onSnapshot(window.fb.collection(db, "civilians"), s => setData(p => ({...p, civilians: s.docs.map(d => ({...d.data(), id: d.id}))}))),
+                ];
+                setLoading(false);
+                return () => unsubs.forEach(u => u());
             }, []);
 
+            // تسجيل الدخول
             const handleLogin = () => {
-                const id = document.getElementById('l_id').value;
-                const pw = document.getElementById('l_pw').value;
-                const u = users.find(x => x.id === id && x.password === pw);
-                if(u) { setCurrentUser(u); setIsLoggedIn(true); } else alert("خطأ في البيانات!");
+                const id = document.getElementById('uid').value;
+                const pw = document.getElementById('upw').value;
+                const found = data.users.find(u => u.id === id && u.password === pw);
+                
+                if (found) {
+                    setUser(found);
+                    setView('home');
+                } else {
+                    alert("بيانات غير صحيحة ❌");
+                }
             };
 
-            if (!isLoggedIn) return (
-                <div className="h-screen w-full flex items-center justify-center p-6 bg-[#05080f]">
-                    <div className="w-full max-w-sm space-y-8 fade-in">
-                        <div className="text-center">
-                            <div className="w-24 h-24 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-500/20">
-                                <i className="fas fa-shield-halved text-4xl text-blue-500"></i>
+            // إضافة تقرير
+            const submitReport = async () => {
+                const txt = document.getElementById('rep_txt').value;
+                if(!txt) return;
+                await window.fb.addDoc(window.fb.collection(window.fb.db, "field_reports"), {
+                    content: txt,
+                    author: user.name,
+                    createdAt: window.fb.serverTimestamp()
+                });
+                setModal(null);
+            };
+
+            // شاشة تسجيل الدخول
+            if (!user) return (
+                <div className="h-screen w-full flex flex-col justify-center items-center p-8 relative">
+                    <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-blue-900/20 to-transparent pointer-events-none"></div>
+                    
+                    <div className="w-full max-w-sm space-y-8 z-10 animate-slide-up">
+                        <div className="text-center space-y-2">
+                            <div className="w-24 h-24 mx-auto bg-gradient-to-tr from-blue-600 to-cyan-400 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 mb-6">
+                                <i className="fas fa-shield-alt text-4xl text-white"></i>
                             </div>
-                            <h1 className="text-3xl font-black italic text-blue-500">MDT MOBILE</h1>
-                            <p className="text-gray-500 text-sm">نظام العمليات المركزية</p>
+                            <h1 className="text-4xl font-black text-white tracking-tighter">MDT <span className="text-cyan-400">SYSTEM</span></h1>
+                            <p className="text-gray-400 text-sm tracking-widest uppercase">وزارة الداخلية - بوابة الموظفين</p>
                         </div>
-                        <div className="space-y-4">
-                            <input id="l_id" type="number" placeholder="الرقم العسكري" className="text-center" />
-                            <input id="l_pw" type="password" placeholder="كلمة المرور" className="text-center" />
-                            <button onClick={handleLogin} className="w-full bg-blue-600 py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all">دخول النظام</button>
+
+                        <div className="space-y-4 backdrop-blur-sm bg-white/5 p-6 rounded-2xl border border-white/10">
+                            <div>
+                                <label className="text-xs text-gray-500 font-bold mr-2 block mb-2">الرقم العسكري</label>
+                                <input id="uid" type="number" className="glass-input text-center font-[Rajdhani] font-bold text-lg tracking-widest" placeholder="10XX" />
+                            </div>
+                            <div>
+                                <label className="text-xs text-gray-500 font-bold mr-2 block mb-2">كلمة المرور</label>
+                                <input id="upw" type="password" className="glass-input text-center" placeholder="••••••" />
+                            </div>
+                            <button onClick={handleLogin} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-600/30 transition-all active:scale-95 mt-4">
+                                تسجيل الدخول للنظام
+                            </button>
                         </div>
                     </div>
+                    
+                    <p className="absolute bottom-8 text-gray-600 text-[10px]">SECURE CONNECTION ESTABLISHED v2.0</p>
                 </div>
             );
 
+            // الواجهة الرئيسية
             return (
-                <div className="relative h-screen">
-                    <header className="header-glass">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-xs font-black italic">M</div>
-                            <span className="font-black italic text-sm tracking-tighter uppercase">{page}</span>
+                <div className="h-screen flex flex-col">
+                    {/* Header */}
+                    <header className="px-6 pt-12 pb-4 flex justify-between items-end bg-gradient-to-b from-black/80 to-transparent sticky top-0 z-50 backdrop-blur-sm">
+                        <div>
+                            <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">{user.rank}</p>
+                            <h2 className="text-2xl font-black text-white leading-none">{user.name.split(' ')[0]}</h2>
                         </div>
-                        <div className="text-left">
-                            <p className="text-[10px] text-blue-500 font-black leading-none uppercase">{currentUser.rank}</p>
-                            <p className="text-xs font-bold">{currentUser.name}</p>
+                        <div className="w-10 h-10 rounded-full bg-gray-800 border border-white/10 overflow-hidden">
+                             {/* صورة افتراضية */}
+                             <div className="w-full h-full flex items-center justify-center bg-blue-600 font-bold">{user.name[0]}</div>
                         </div>
                     </header>
 
-                    <main className="main-container">
-                        {page === 'dashboard' && (
-                            <div className="space-y-6 fade-in">
-                                <div className="mobile-card p-6 border-r-4 border-blue-500">
-                                    <h2 className="text-gray-400 text-xs font-bold mb-1">إحصائيات القوة</h2>
-                                    <div className="flex justify-between items-end">
-                                        <p className="text-4xl font-black">{users.length}</p>
-                                        <i className="fas fa-users text-blue-500/20 text-4xl"></i>
-                                    </div>
+                    {/* Content Area */}
+                    <main className="flex-1 overflow-y-auto p-5 pb-24 no-scrollbar space-y-6">
+                        
+                        {view === 'home' && (
+                            <div className="animate-slide-up space-y-6">
+                                {/* Stats Grid */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <StatCard title="إجمالي القوة" value={data.users.length} icon="fa-users" color="blue" />
+                                    <StatCard title="المطلوبين" value={data.wanted.length} icon="fa-exclamation-triangle" color="red" />
+                                    <StatCard title="البلاغات" value={data.reports.length} icon="fa-file-alt" color="cyan" />
+                                    <StatCard title="المواطنين" value={data.civilians.length} icon="fa-id-card" color="purple" />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="mobile-card p-4 border-r-4 border-red-500">
-                                        <h3 className="text-[10px] font-bold text-gray-400">المطلوبين</h3>
-                                        <p className="text-2xl font-black">{wanted.length}</p>
-                                    </div>
-                                    <div className="mobile-card p-4 border-r-4 border-amber-500">
-                                        <h3 className="text-[10px] font-bold text-gray-400">التقارير</h3>
-                                        <p className="text-2xl font-black">{reports.length}</p>
-                                    </div>
-                                </div>
-
+                                {/* Quick Actions */}
                                 <div className="space-y-3">
-                                    <h3 className="text-sm font-black mr-1">أحدث التعاميم 🚨</h3>
-                                    {wanted.slice(0, 2).map(w => (
-                                        <div key={w.fbId} className="mobile-card p-3 flex items-center gap-4">
-                                            <img src={w.photo} className="w-12 h-12 rounded-xl object-cover" />
-                                            <div>
-                                                <p className="font-black text-sm text-red-500">{w.name}</p>
-                                                <p className="text-[10px] text-gray-400">{w.charge}</p>
+                                    <h3 className="text-gray-400 text-xs font-bold mr-1">عمليات سريعة</h3>
+                                    <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+                                        <button onClick={()=>setModal('addReport')} className="bg-white/5 border border-white/10 px-6 py-4 rounded-xl flex flex-col items-center gap-2 min-w-[100px] hover:bg-white/10 transition">
+                                            <i className="fas fa-edit text-cyan-400 text-xl"></i>
+                                            <span className="text-[10px] font-bold">تقرير جديد</span>
+                                        </button>
+                                        <button onClick={()=>alert('قريباً')} className="bg-white/5 border border-white/10 px-6 py-4 rounded-xl flex flex-col items-center gap-2 min-w-[100px] hover:bg-white/10 transition">
+                                            <i className="fas fa-search text-purple-400 text-xl"></i>
+                                            <span className="text-[10px] font-bold">بحث مدني</span>
+                                        </button>
+                                        <button onClick={()=>alert('قريباً')} className="bg-white/5 border border-white/10 px-6 py-4 rounded-xl flex flex-col items-center gap-2 min-w-[100px] hover:bg-white/10 transition">
+                                            <i className="fas fa-user-plus text-green-400 text-xl"></i>
+                                            <span className="text-[10px] font-bold">إضافة مطلوب</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Recent Reports Ticker */}
+                                <div>
+                                    <h3 className="text-gray-400 text-xs font-bold mr-1 mb-3">آخر البرقيات</h3>
+                                    <div className="space-y-3">
+                                        {data.reports.slice(0, 3).map(r => (
+                                            <div key={r.id} className="cyber-card p-4 border-l-2 border-l-cyan-500">
+                                                <div className="flex justify-between mb-1">
+                                                    <span className="text-cyan-400 text-[10px] font-bold">{r.author}</span>
+                                                    <span className="text-gray-500 text-[10px]">الآن</span>
+                                                </div>
+                                                <p className="text-sm text-gray-300 leading-relaxed">{r.content}</p>
                                             </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {view === 'wanted' && (
+                            <div className="animate-slide-up">
+                                <h1 className="text-2xl font-black mb-4 flex items-center gap-2">
+                                    <span className="w-2 h-8 bg-red-600 rounded-full block"></span>
+                                    قائمة المطلوبين
+                                </h1>
+                                {data.wanted.map(w => <WantedCard key={w.id} data={w} />)}
+                            </div>
+                        )}
+
+                        {view === 'reports' && (
+                            <div className="animate-slide-up pb-20">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h1 className="text-2xl font-black">التقارير الميدانية</h1>
+                                    <button onClick={()=>setModal('addReport')} className="bg-cyan-500 text-black w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg shadow-cyan-500/30">
+                                        <i className="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <div className="space-y-4">
+                                    {data.reports.map(r => (
+                                        <div key={r.id} className="cyber-card p-4">
+                                            <div className="flex items-center gap-3 mb-3 border-b border-white/5 pb-3">
+                                                <div className="w-8 h-8 rounded-full bg-blue-900 flex items-center justify-center text-blue-400 text-xs font-bold">
+                                                    {r.author[0]}
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-sm">{r.author}</p>
+                                                    <p className="text-[10px] text-gray-500">تقرير رسمي</p>
+                                                </div>
+                                            </div>
+                                            <p className="text-gray-300 text-sm whitespace-pre-wrap">{r.content}</p>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
 
-                        {page === 'wanted' && (
-                            <div className="space-y-4 fade-in">
-                                <h1 className="text-2xl font-black">قائمة المطلوبين</h1>
-                                {wanted.map(w => (
-                                    <div key={w.fbId} className="mobile-card overflow-hidden">
-                                        <img src={w.photo} className="w-full h-48 object-cover" />
-                                        <div className="p-4 flex justify-between items-center">
-                                            <div>
-                                                <h3 className="font-black text-red-500">{w.name}</h3>
-                                                <p className="text-xs text-gray-400">{w.charge}</p>
-                                            </div>
-                                            <button className="bg-red-600/10 text-red-500 p-2 rounded-lg text-xs font-bold">تفاصيل</button>
+                        {view === 'civil' && (
+                             <div className="animate-slide-up">
+                                <h1 className="text-2xl font-black mb-4">السجل المدني</h1>
+                                <input placeholder="بحث عن مواطن (الاسم / الهوية)..." className="glass-input mb-4" />
+                                <div className="grid grid-cols-2 gap-3">
+                                    {data.civilians.map(c => (
+                                        <div key={c.id} className="cyber-card p-3 text-center">
+                                            <img src={c.photo} className="w-16 h-16 mx-auto rounded-full mb-2 object-cover border border-purple-500/30" />
+                                            <p className="font-bold text-sm truncate">{c.name}</p>
+                                            <p className="text-[10px] text-gray-500 font-[Rajdhani]">{c.sonyId}</p>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         )}
 
-                        {page === 'reports' && (
-                            <div className="space-y-4 fade-in">
-                                <h1 className="text-2xl font-black">التقارير الميدانية</h1>
-                                <div className="mobile-card p-4 space-y-3">
-                                    <textarea id="r_content" placeholder="اكتب تفاصيل البلاغ هنا..." className="h-24 text-sm"></textarea>
-                                    <button onClick={async()=>{
-                                        const val = document.getElementById('r_content').value;
-                                        if(!val) return;
-                                        await window.fb.addDoc(window.fb.collection(window.fb.db, "field_reports"), {
-                                            content: val, author: currentUser.name, createdAt: window.fb.serverTimestamp()
-                                        });
-                                        document.getElementById('r_content').value = '';
-                                    }} className="w-full bg-blue-600 py-3 rounded-xl font-black text-sm">إرسال التقرير</button>
-                                </div>
-                                {reports.map(r => (
-                                    <div key={r.fbId} className="mobile-card p-4 border-r-2 border-blue-500">
-                                        <div className="flex justify-between mb-2">
-                                            <span className="text-[10px] font-black text-blue-400">{r.author}</span>
-                                            <span className="text-[10px] text-gray-600">منذ قليل</span>
-                                        </div>
-                                        <p className="text-xs text-gray-300 leading-relaxed">{r.content}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
                     </main>
 
-                    <nav className="bottom-nav">
-                        <div onClick={()=>setPage('dashboard')} className={`nav-btn ${page==='dashboard'?'active':''}`}>
-                            <i className="fas fa-home"></i><span>الرئيسية</span>
-                        </div>
-                        <div onClick={()=>setPage('wanted')} className={`nav-btn ${page==='wanted'?'active':''}`}>
-                            <i className="fas fa-skull-crossbones"></i><span>المطلوبين</span>
-                        </div>
-                        <div onClick={()=>setPage('reports')} className={`nav-btn ${page==='reports'?'active':''}`}>
-                            <i className="fas fa-file-signature"></i><span>التقارير</span>
-                        </div>
-                        <div onClick={()=>setIsLoggedIn(false)} className="nav-btn text-red-500">
-                            <i className="fas fa-power-off"></i><span>خروج</span>
-                        </div>
+                    {/* Bottom Navigation */}
+                    <nav className="nav-glass fixed bottom-0 left-0 w-full flex justify-around items-center h-[80px] z-50">
+                        <button onClick={() => setView('home')} className={`nav-item flex flex-col items-center gap-1 transition-all duration-300 ${view === 'home' ? 'active scale-110' : 'text-gray-600'}`}>
+                            <i className="fas fa-home text-xl"></i>
+                            <span className="text-[10px] font-bold">الرئيسية</span>
+                        </button>
+                        <button onClick={() => setView('wanted')} className={`nav-item flex flex-col items-center gap-1 transition-all duration-300 ${view === 'wanted' ? 'active scale-110' : 'text-gray-600'}`}>
+                            <i className="fas fa-skull text-xl"></i>
+                            <span className="text-[10px] font-bold">المطلوبين</span>
+                        </button>
+                        <button onClick={() => setView('reports')} className={`nav-item flex flex-col items-center gap-1 transition-all duration-300 ${view === 'reports' ? 'active scale-110' : 'text-gray-600'}`}>
+                            <i className="fas fa-clipboard-list text-xl"></i>
+                            <span className="text-[10px] font-bold">التقارير</span>
+                        </button>
+                        <button onClick={() => setView('civil')} className={`nav-item flex flex-col items-center gap-1 transition-all duration-300 ${view === 'civil' ? 'active scale-110' : 'text-gray-600'}`}>
+                            <i className="fas fa-id-card text-xl"></i>
+                            <span className="text-[10px] font-bold">المدني</span>
+                        </button>
                     </nav>
 
-                    {/* زر إضافة سريع */}
-                    {page === 'wanted' && (
-                        <div className="fab" onClick={() => alert('سيتم فتح فورم الإضافة')}>
-                            <i className="fas fa-plus"></i>
+                    {/* Modal (Popup) */}
+                    {modal && (
+                        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center">
+                            <div className="bg-[#18181b] border-t border-white/10 w-full sm:w-96 rounded-t-3xl sm:rounded-2xl p-6 animate-slide-up shadow-2xl shadow-black">
+                                <div className="w-12 h-1 bg-gray-700 rounded-full mx-auto mb-6"></div>
+                                
+                                {modal === 'addReport' && (
+                                    <div className="space-y-4">
+                                        <h3 className="text-xl font-bold text-center text-white">إضافة تقرير جديد</h3>
+                                        <textarea id="rep_txt" className="glass-input h-32 resize-none" placeholder="اكتب تفاصيل الواقعة هنا..."></textarea>
+                                        <div className="flex gap-3">
+                                            <button onClick={submitReport} className="flex-1 bg-cyan-600 py-3 rounded-xl font-bold text-black">إرسال</button>
+                                            <button onClick={()=>setModal(null)} className="flex-1 bg-white/10 py-3 rounded-xl font-bold text-gray-300">إلغاء</button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>
