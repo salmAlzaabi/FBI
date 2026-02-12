@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LSPD | COMMAND CENTER</title>
+    <title>FBI | ADMINISTRATION SYSTEM</title>
     
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -11,56 +11,38 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;500;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;600;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
 
     <style>
-        :root { --bg: #09090b; --primary: #3b82f6; --danger: #ef4444; --success: #10b981; --glass: rgba(24, 24, 27, 0.8); }
-        body { background-color: var(--bg); color: #e4e4e7; overflow: hidden; height: 100vh; font-family: 'Cairo', sans-serif; }
+        :root { --bg: #050507; --accent: #3b82f6; --danger: #ef4444; --card-bg: rgba(20, 20, 25, 0.8); }
+        body { background-color: var(--bg); color: #fff; font-family: 'Cairo', sans-serif; overflow: hidden; height: 100vh; }
         
-        /* تأثيرات الخلفية */
-        .grid-bg {
+        .cyber-grid {
             position: fixed; inset: 0; z-index: -1;
-            background-image: linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
-            background-size: 30px 30px;
+            background-image: linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
         }
 
-        /* المدخلات */
-        .glass-input {
-            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px; color: white; padding: 14px; width: 100%; outline: none; transition: 0.3s;
-        }
-        .glass-input:focus { border-color: var(--primary); background: rgba(59, 130, 246, 0.05); }
-        
-        /* القوائم المنسدلة */
-        select.glass-input { color: #fff; appearance: none; }
-        select.glass-input option { background: #18181b; color: white; }
+        .glass-card { background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; }
+        .glass-input { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; color: white; width: 100%; outline: none; transition: 0.3s; }
+        .glass-input:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
 
-        /* الأزرار */
-        .btn-neon {
-            background: linear-gradient(45deg, var(--primary), #2563eb);
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); border: none;
-        }
-        .btn-danger {
-            background: linear-gradient(45deg, var(--danger), #b91c1c);
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); border: none;
-        }
+        .btn-action { background: linear-gradient(135deg, #3b82f6, #1d4ed8); transition: 0.3s; }
+        .btn-action:active { transform: scale(0.95); }
 
-        /* التحريكات */
-        .slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        /* سكرول بار */
         .hide-scroll::-webkit-scrollbar { display: none; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-up { animation: slideUp 0.4s ease-out; }
     </style>
 </head>
 <body>
-    <div class="grid-bg"></div>
+    <div class="cyber-grid"></div>
     <div id="root"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, setDoc, doc, deleteDoc, query, orderBy, addDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+        
         const firebaseConfig = { 
             apiKey: "AIzaSyCYgffN2dA7IILMbI2i_1YfERkKWIrpHyA", 
             authDomain: "ek-police.firebaseapp.com", 
@@ -71,313 +53,220 @@
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        window.fb = { db, collection, onSnapshot, addDoc, serverTimestamp, query, orderBy };
+        window.fb = { db, collection, onSnapshot, setDoc, doc, deleteDoc, query, orderBy, addDoc, updateDoc, serverTimestamp };
     </script>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        /* --- مكون التنبيهات --- */
-        const Toast = ({ msg, type }) => (
-            <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 slide-up ${type === 'success' ? 'bg-green-500/90 text-black' : 'bg-red-500/90 text-white'}`}>
-                <i className={`fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>
-                <span className="font-bold text-sm">{msg}</span>
-            </div>
-        );
+        const RANKS = [
+            "Director", "Deputy Director", "Associate Deputy Director", 
+            "Executive Assistant Director", "Assistant Director", 
+            "Deputy Assistant Director", "Special Agent in Charge – SAC", 
+            "Assistant Special Agent in Charge – ASAC", 
+            "Supervisory Special Agent – SSA", "Senior Special Agent", "Special Agent"
+        ];
 
         const App = () => {
-            const [user, setUser] = useState(null); // يمكن حفظ الجلسة في LocalStorage
-            const [view, setView] = useState('login');
-            const [modal, setModal] = useState(null); // 'officer', 'civilian', 'wanted', 'report'
-            const [toast, setToast] = useState(null);
-            const [data, setData] = useState({ users: [], wanted: [], reports: [], civilians: [] });
+            const [user, setUser] = useState(null);
+            const [view, setView] = useState('login'); // login, home, staff
+            const [data, setData] = useState({ users: [], wanted: [], reports: [] });
+            const [editingUser, setEditingUser] = useState(null);
 
-            // جلب البيانات
             useEffect(() => {
                 if (!window.fb) return;
                 const db = window.fb.db;
-                
-                // الاستماع للبيانات الحية
-                window.fb.onSnapshot(window.fb.collection(db, "users"), s => setData(p => ({...p, users: s.docs.map(d => ({...d.data(), id: d.id}))})));
-                window.fb.onSnapshot(window.fb.collection(db, "wanted"), s => setData(p => ({...p, wanted: s.docs.map(d => ({...d.data(), id: d.id}))})));
-                window.fb.onSnapshot(window.fb.collection(db, "civilians"), s => setData(p => ({...p, civilians: s.docs.map(d => ({...d.data(), id: d.id}))})));
-                window.fb.onSnapshot(window.fb.query(window.fb.collection(db, "field_reports"), window.fb.orderBy("createdAt", "desc")), s => setData(p => ({...p, reports: s.docs.map(d => ({...d.data(), id: d.id}))})));
+                const unsubs = [
+                    window.fb.onSnapshot(window.fb.collection(db, "users"), s => setData(p => ({...p, users: s.docs.map(d => ({...d.data(), id: d.id}))}))),
+                    window.fb.onSnapshot(window.fb.collection(db, "field_reports"), s => setData(p => ({...p, reports: s.docs.map(d => ({...d.data(), id: d.id}))})))
+                ];
+                return () => unsubs.forEach(u => u());
             }, []);
 
-            // إظهار تنبيه
-            const showToast = (msg, type = 'success') => {
-                setToast({ msg, type });
-                setTimeout(() => setToast(null), 3000);
-            };
-
-            // تسجيل الدخول
             const handleLogin = () => {
-                const id = document.getElementById('login_id').value;
-                const pw = document.getElementById('login_pw').value;
+                const id = document.getElementById('l_id').value;
+                const pw = document.getElementById('l_pw').value;
                 const found = data.users.find(u => u.id === id && u.password === pw);
-                if (found) {
-                    setUser(found);
-                    setView('home');
-                    showToast(`أهلاً بك يا ${found.rank}`, 'success');
-                } else {
-                    showToast('بيانات الدخول خاطئة', 'error');
-                }
+                if (found) { setUser(found); setView('home'); }
+                else alert("خطأ في البيانات");
             };
 
-            // دالة الإضافة الشاملة
-            const handleSubmit = async () => {
+            const saveUser = async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const userData = Object.fromEntries(formData);
                 const db = window.fb.db;
-                try {
-                    if (modal === 'officer') {
-                        const name = document.getElementById('off_name').value;
-                        const rank = document.getElementById('off_rank').value;
-                        const badge = document.getElementById('off_badge').value; // هذا سيكون ID
-                        const pass = document.getElementById('off_pass').value;
-                        
-                        // إضافة في كولكشن users مع تحديد ID المستند كرقم الشارة
-                        await window.fb.setDoc(window.fb.doc(db, "users", badge), {
-                            name, rank, password: pass, createdAt: window.fb.serverTimestamp()
-                        });
-                        showToast('تم توظيف الضابط بنجاح');
-                    }
-                    
-                    else if (modal === 'civilian') {
-                        await window.fb.addDoc(window.fb.collection(db, "civilians"), {
-                            name: document.getElementById('civ_name').value,
-                            sonyId: document.getElementById('civ_id').value,
-                            phone: document.getElementById('civ_phone').value,
-                            gender: document.getElementById('civ_gender').value,
-                            photo: 'https://via.placeholder.com/150', // يمكن تطويرها لرفع صور لاحقاً
-                            createdAt: window.fb.serverTimestamp()
-                        });
-                        showToast('تم تسجيل المواطن');
-                    }
+                
+                await window.fb.setDoc(window.fb.doc(db, "users", userData.id), {
+                    name: userData.name,
+                    rank: userData.rank,
+                    password: userData.password,
+                    updatedAt: window.fb.serverTimestamp()
+                }, { merge: true });
+                
+                setEditingUser(null);
+                alert("تم حفظ بيانات الموظف");
+            };
 
-                    else if (modal === 'wanted') {
-                        await window.fb.addDoc(window.fb.collection(db, "wanted"), {
-                            name: document.getElementById('wan_name').value,
-                            charge: document.getElementById('wan_charge').value,
-                            danger: document.getElementById('wan_danger').value,
-                            photo: 'https://via.placeholder.com/150',
-                            status: 'active',
-                            createdAt: window.fb.serverTimestamp()
-                        });
-                        showToast('تم تعميم البلاغ');
-                    }
-
-                    else if (modal === 'report') {
-                        await window.fb.addDoc(window.fb.collection(db, "field_reports"), {
-                            content: document.getElementById('rep_content').value,
-                            type: document.getElementById('rep_type').value,
-                            author: user.name,
-                            authorRank: user.rank,
-                            createdAt: window.fb.serverTimestamp()
-                        });
-                        showToast('تم إرسال التقرير');
-                    }
-
-                    setModal(null);
-                } catch (e) {
-                    console.error(e);
-                    showToast('حدث خطأ أثناء العملية', 'error');
+            const deleteUser = async (id) => {
+                if(confirm("هل أنت متأكد من فصل هذا الموظف؟")) {
+                    await window.fb.deleteDoc(window.fb.doc(window.fb.db, "users", id));
                 }
             };
 
-            /* --- الشاشات --- */
-            if (!user) return (
-                <div className="h-screen flex items-center justify-center p-6 relative">
-                    {toast && <Toast msg={toast.msg} type={toast.type} />}
-                    <div className="w-full max-w-sm bg-[#121215] p-8 rounded-3xl border border-white/5 shadow-2xl relative overflow-hidden slide-up">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+            // التحقق من صلاحية الإدارة (Director down to Assistant Director)
+            const isAdmin = user && RANKS.slice(0, 5).includes(user.rank);
+
+            if (view === 'login') return (
+                <div className="h-screen flex items-center justify-center p-6">
+                    <div className="w-full max-w-sm glass-card p-8 border-t-4 border-blue-500 animate-up">
                         <div className="text-center mb-8">
-                            <i className="fas fa-fingerprint text-5xl text-blue-500 mb-4 animate-pulse"></i>
-                            <h1 className="text-3xl font-black text-white">SYSTEM ACCESS</h1>
-                            <p className="text-gray-500 text-xs tracking-widest mt-2">RESTRICTED AREA</p>
+                            <div className="w-20 h-20 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-blue-500/20 mb-4">
+                                <i className="fas fa-shield-alt text-3xl"></i>
+                            </div>
+                            <h1 className="text-2xl font-black tracking-tighter">FBI TERMINAL</h1>
+                            <p className="text-gray-500 text-[10px] uppercase mt-1">Authorized Access Only</p>
                         </div>
                         <div className="space-y-4">
-                            <input id="login_id" type="number" placeholder="الرقم العسكري" className="glass-input text-center font-[Rajdhani] font-bold text-lg" />
-                            <input id="login_pw" type="password" placeholder="كلمة المرور" className="glass-input text-center" />
-                            <button onClick={handleLogin} className="w-full btn-neon py-4 rounded-xl text-white font-bold mt-4">تسجيل الدخول</button>
+                            <input id="l_id" type="number" placeholder="ID Number" className="glass-input text-center font-bold" />
+                            <input id="l_pw" type="password" placeholder="Password" className="glass-input text-center" />
+                            <button onClick={handleLogin} className="w-full btn-action py-4 rounded-xl font-bold">LOGIN</button>
                         </div>
                     </div>
                 </div>
             );
 
             return (
-                <div className="h-screen flex flex-col relative">
-                    {toast && <Toast msg={toast.msg} type={toast.type} />}
-                    
-                    {/* Header */}
-                    <header className="p-5 flex justify-between items-center bg-[#121215]/80 backdrop-blur border-b border-white/5">
+                <div className="h-screen flex flex-col">
+                    {/* Top Bar */}
+                    <header className="p-6 flex justify-between items-center bg-black/40 backdrop-blur-md border-b border-white/5">
                         <div>
-                            <h2 className="text-xl font-black text-white">LSPD <span className="text-blue-500">MDT</span></h2>
-                            <p className="text-[10px] text-gray-400">مرحباً, {user.rank} {user.name}</p>
+                            <h2 className="text-xl font-black text-blue-500">{view === 'staff' ? 'STAFF MANAGEMENT' : 'DASHBOARD'}</h2>
+                            <p className="text-[10px] text-gray-400 uppercase tracking-widest">{user.rank} | {user.name}</p>
                         </div>
-                        <div onClick={() => setView('login')} className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 cursor-pointer">
-                            <i className="fas fa-power-off"></i>
-                        </div>
+                        <button onClick={() => setView(view === 'home' ? 'staff' : 'home')} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
+                            <i className={`fas ${view === 'home' ? 'fa-users-cog' : 'fa-home'}`}></i>
+                        </button>
                     </header>
 
-                    {/* Main Content */}
-                    <main className="flex-1 overflow-y-auto p-4 pb-24 hide-scroll">
+                    {/* Content */}
+                    <main className="flex-1 overflow-y-auto p-4 hide-scroll">
                         
-                        {/* Quick Actions Grid */}
-                        <div className="grid grid-cols-4 gap-2 mb-6 slide-up">
-                            <button onClick={() => setModal('report')} className="bg-[#1c1c1f] p-3 rounded-xl flex flex-col items-center gap-2 active:scale-95 transition border border-white/5">
-                                <i className="fas fa-file-alt text-blue-400 text-lg"></i>
-                                <span className="text-[9px] font-bold">تقرير</span>
-                            </button>
-                            <button onClick={() => setModal('civilian')} className="bg-[#1c1c1f] p-3 rounded-xl flex flex-col items-center gap-2 active:scale-95 transition border border-white/5">
-                                <i className="fas fa-user-plus text-purple-400 text-lg"></i>
-                                <span className="text-[9px] font-bold">مدني</span>
-                            </button>
-                            <button onClick={() => setModal('wanted')} className="bg-[#1c1c1f] p-3 rounded-xl flex flex-col items-center gap-2 active:scale-95 transition border border-white/5">
-                                <i className="fas fa-skull text-red-400 text-lg"></i>
-                                <span className="text-[9px] font-bold">مطلوب</span>
-                            </button>
-                            <button onClick={() => setModal('officer')} className="bg-[#1c1c1f] p-3 rounded-xl flex flex-col items-center gap-2 active:scale-95 transition border border-white/5">
-                                <i className="fas fa-user-shield text-green-400 text-lg"></i>
-                                <span className="text-[9px] font-bold">موظف</span>
-                            </button>
-                        </div>
-
-                        {/* View Switcher */}
                         {view === 'home' && (
-                            <div className="space-y-6 slide-up">
-                                {/* Wanted Section */}
-                                <div>
-                                    <h3 className="font-bold text-gray-400 text-xs mb-3 flex items-center gap-2">
-                                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span> المطلوبين حالياً
-                                    </h3>
-                                    <div className="flex gap-3 overflow-x-auto hide-scroll pb-2">
-                                        {data.wanted.map(w => (
-                                            <div key={w.id} className="min-w-[140px] bg-[#18181b] p-3 rounded-xl border border-red-500/20 relative overflow-hidden">
-                                                <div className="absolute top-0 right-0 p-1 bg-red-500/20 text-red-500 text-[8px] font-bold rounded-bl-lg">WANTED</div>
-                                                <div className="w-12 h-12 bg-gray-700 rounded-full mx-auto mb-2 overflow-hidden">
-                                                    <img src={w.photo} className="w-full h-full object-cover" />
-                                                </div>
-                                                <p className="text-center font-bold text-sm truncate">{w.name}</p>
-                                                <p className="text-center text-[10px] text-red-400 truncate">{w.charge}</p>
-                                            </div>
-                                        ))}
+                            <div className="space-y-6 animate-up">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="glass-card p-4 border-r-4 border-blue-500">
+                                        <p className="text-gray-500 text-[10px] font-bold">ACTIVE AGENTS</p>
+                                        <h3 className="text-3xl font-black">{data.users.length}</h3>
+                                    </div>
+                                    <div className="glass-card p-4 border-r-4 border-cyan-500">
+                                        <p className="text-gray-500 text-[10px] font-bold">REPORTS FILED</p>
+                                        <h3 className="text-3xl font-black">{data.reports.length}</h3>
                                     </div>
                                 </div>
 
-                                {/* Recent Reports */}
+                                {isAdmin && (
+                                    <button onClick={() => setView('staff')} className="w-full p-4 glass-card flex items-center justify-between group hover:border-blue-500/50 transition">
+                                        <div className="flex items-center gap-4">
+                                            <i className="fas fa-user-shield text-blue-500 text-xl"></i>
+                                            <div className="text-right">
+                                                <h4 className="font-bold">إدارة شؤون الموظفين</h4>
+                                                <p className="text-[10px] text-gray-500">إضافة، تعديل، ترقية، وفصل</p>
+                                            </div>
+                                        </div>
+                                        <i className="fas fa-chevron-left text-gray-700 group-hover:text-blue-500"></i>
+                                    </button>
+                                )}
+
                                 <div>
-                                    <h3 className="font-bold text-gray-400 text-xs mb-3">آخر البلاغات</h3>
+                                    <h3 className="text-xs font-bold text-gray-500 mb-4 px-2">آخر تقارير الميدان</h3>
                                     <div className="space-y-3">
-                                        {data.reports.map(r => (
-                                            <div key={r.id} className="bg-[#18181b] p-4 rounded-xl border-r-2 border-blue-500 flex gap-3">
-                                                <div className="flex-1">
-                                                    <div className="flex justify-between items-start mb-1">
-                                                        <span className="text-blue-400 text-[10px] font-bold bg-blue-400/10 px-2 py-0.5 rounded">{r.type}</span>
-                                                        <span className="text-gray-600 text-[9px]">{r.author}</span>
-                                                    </div>
-                                                    <p className="text-sm text-gray-300 leading-relaxed">{r.content}</p>
+                                        {data.reports.slice(0, 5).map(r => (
+                                            <div key={r.id} className="glass-card p-4 border-l-2 border-blue-500">
+                                                <div className="flex justify-between text-[10px] mb-2">
+                                                    <span className="text-blue-400 font-bold">{r.authorRank} {r.author}</span>
+                                                    <span className="text-gray-600">منذ قليل</span>
                                                 </div>
+                                                <p className="text-sm text-gray-300">{r.content}</p>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             </div>
                         )}
-                        
-                        {view === 'civilians_list' && (
-                             <div className="slide-up">
-                                <h3 className="font-bold text-xl mb-4">قاعدة البيانات المدنية</h3>
-                                <div className="space-y-3">
-                                    {data.civilians.map(c => (
-                                        <div key={c.id} className="bg-[#18181b] p-3 rounded-xl flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-lg">
-                                                {c.name[0]}
-                                            </div>
-                                            <div>
-                                                <h4 className="font-bold">{c.name}</h4>
-                                                <p className="text-xs text-gray-500 font-[Rajdhani]">ID: {c.sonyId}</p>
-                                            </div>
+
+                        {view === 'staff' && (
+                            <div className="space-y-6 animate-up">
+                                {isAdmin ? (
+                                    <>
+                                        <button onClick={() => setEditingUser({ id: '', name: '', rank: 'Special Agent', password: '' })} className="w-full btn-action py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                                            <i className="fas fa-plus-circle"></i> إضافة موظف جديد
+                                        </button>
+
+                                        <div className="space-y-3">
+                                            {data.users.map(u => (
+                                                <div key={u.id} className="glass-card p-4 flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-lg bg-blue-600/20 flex items-center justify-center text-blue-500 font-bold">
+                                                            {u.id.slice(-2)}
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="font-bold text-sm">{u.name}</h4>
+                                                            <p className="text-[10px] text-blue-400 font-bold">{u.rank}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        <button onClick={() => setEditingUser(u)} className="w-8 h-8 bg-white/5 rounded flex items-center justify-center text-xs"><i className="fas fa-edit"></i></button>
+                                                        <button onClick={() => deleteUser(u.id)} className="w-8 h-8 bg-red-500/10 rounded flex items-center justify-center text-xs text-danger"><i className="fas fa-trash"></i></button>
+                                                    </div>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
-                                </div>
-                             </div>
+                                    </>
+                                ) : (
+                                    <div className="text-center p-10 glass-card">
+                                        <i className="fas fa-lock text-4xl text-red-500 mb-4"></i>
+                                        <p className="text-red-500 font-bold">غير مصرح لك بالدخول</p>
+                                        <p className="text-gray-500 text-xs mt-2">تحتاج رتبة Assistant Director فأعلى</p>
+                                    </div>
+                                )}
+                            </div>
                         )}
                     </main>
 
-                    {/* Bottom Nav */}
-                    <nav className="fixed bottom-0 w-full bg-[#09090b]/90 backdrop-blur border-t border-white/5 p-4 flex justify-around z-40">
-                        <button onClick={() => setView('home')} className={`text-2xl transition ${view === 'home' ? 'text-blue-500' : 'text-gray-600'}`}><i className="fas fa-home"></i></button>
-                        <button onClick={() => setView('civilians_list')} className={`text-2xl transition ${view === 'civilians_list' ? 'text-purple-500' : 'text-gray-600'}`}><i className="fas fa-users"></i></button>
-                        <button className="w-14 h-14 bg-gradient-to-tr from-blue-600 to-cyan-500 rounded-full -mt-8 shadow-lg shadow-blue-500/30 flex items-center justify-center text-white text-2xl border-4 border-[#09090b]" onClick={() => setModal('report')}><i className="fas fa-plus"></i></button>
-                        <button className="text-2xl text-gray-600"><i className="fas fa-search"></i></button>
-                        <button className="text-2xl text-gray-600"><i className="fas fa-cog"></i></button>
-                    </nav>
-
-                    {/* Universal Modal */}
-                    {modal && (
-                        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-                            <div className="bg-[#18181b] w-full sm:w-96 rounded-t-3xl sm:rounded-3xl p-6 border-t border-white/10 slide-up max-h-[90vh] overflow-y-auto">
-                                <div className="w-12 h-1.5 bg-gray-700 rounded-full mx-auto mb-6"></div>
+                    {/* Editor Modal */}
+                    {editingUser && (
+                        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-6">
+                            <form onSubmit={saveUser} className="w-full max-w-md glass-card p-6 space-y-4 animate-up border-t-4 border-blue-500">
+                                <h3 className="text-xl font-black text-center mb-4">ملف الموظف</h3>
                                 
-                                {modal === 'officer' && (
-                                    <div className="space-y-4">
-                                        <h3 className="text-xl font-bold text-center text-green-400 mb-4">توظيف ضابط جديد</h3>
-                                        <input id="off_name" placeholder="الاسم الثلاثي" className="glass-input" />
-                                        <input id="off_badge" type="number" placeholder="الرقم العسكري (للدخول)" className="glass-input" />
-                                        <select id="off_rank" className="glass-input">
-                                            <option value="طالب">طالب</option>
-                                            <option value="شرطي">شرطي</option>
-                                            <option value="رقيب">رقيب</option>
-                                            <option value="ملازم">ملازم</option>
-                                            <option value="لواء">لواء</option>
-                                        </select>
-                                        <input id="off_pass" type="password" placeholder="كلمة المرور" className="glass-input" />
-                                        <button onClick={handleSubmit} className="w-full btn-neon py-3 rounded-xl font-bold text-white mt-2">إضافة للسجل</button>
-                                    </div>
-                                )}
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-500 mb-2 block">الرقم العسكري (ID)</label>
+                                    <input name="id" defaultValue={editingUser.id} readOnly={editingUser.id !== ''} className="glass-input font-bold text-blue-500" required />
+                                </div>
 
-                                {modal === 'civilian' && (
-                                    <div className="space-y-4">
-                                        <h3 className="text-xl font-bold text-center text-purple-400 mb-4">تسجيل مواطن</h3>
-                                        <input id="civ_name" placeholder="الاسم الكامل" className="glass-input" />
-                                        <input id="civ_id" placeholder="رقم الهوية / ديسكورد" className="glass-input" />
-                                        <input id="civ_phone" type="tel" placeholder="رقم الجوال" className="glass-input" />
-                                        <select id="civ_gender" className="glass-input">
-                                            <option value="ذكر">ذكر</option>
-                                            <option value="أنثى">أنثى</option>
-                                        </select>
-                                        <button onClick={handleSubmit} className="w-full btn-neon py-3 rounded-xl font-bold text-white mt-2">حفظ البيانات</button>
-                                    </div>
-                                )}
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-500 mb-2 block">الاسم بالكامل</label>
+                                    <input name="name" defaultValue={editingUser.name} className="glass-input" required />
+                                </div>
 
-                                {modal === 'wanted' && (
-                                    <div className="space-y-4">
-                                        <h3 className="text-xl font-bold text-center text-red-500 mb-4">إضافة مطلوب أمني</h3>
-                                        <input id="wan_name" placeholder="اسم المطلوب" className="glass-input" />
-                                        <input id="wan_charge" placeholder="التهمة الموجهة" className="glass-input" />
-                                        <select id="wan_danger" className="glass-input text-red-400">
-                                            <option value="low">خطورة منخفضة</option>
-                                            <option value="medium">خطورة متوسطة</option>
-                                            <option value="high">خطر جداً (مسلح)</option>
-                                        </select>
-                                        <button onClick={handleSubmit} className="w-full btn-danger py-3 rounded-xl font-bold text-white mt-2">تعميم البلاغ</button>
-                                    </div>
-                                )}
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-500 mb-2 block">الرتبة الوظيفية</label>
+                                    <select name="rank" defaultValue={editingUser.rank} className="glass-input bg-[#1a1a1e]">
+                                        {RANKS.map(r => <option key={r} value={r}>{r}</option>)}
+                                    </select>
+                                </div>
 
-                                {modal === 'report' && (
-                                    <div className="space-y-4">
-                                        <h3 className="text-xl font-bold text-center text-blue-400 mb-4">كتابة تقرير</h3>
-                                        <select id="rep_type" className="glass-input">
-                                            <option value="دورية">تقرير دورية</option>
-                                            <option value="اعتقال">تقرير اعتقال</option>
-                                            <option value="حادث">تقرير حادث</option>
-                                        </select>
-                                        <textarea id="rep_content" className="glass-input h-32 resize-none" placeholder="تفاصيل الواقعة..."></textarea>
-                                        <button onClick={handleSubmit} className="w-full btn-neon py-3 rounded-xl font-bold text-white mt-2">إرسال للعمليات</button>
-                                    </div>
-                                )}
+                                <div>
+                                    <label className="text-[10px] font-bold text-gray-500 mb-2 block">كلمة المرور</label>
+                                    <input name="password" type="text" defaultValue={editingUser.password} className="glass-input" required />
+                                </div>
 
-                                <button onClick={() => setModal(null)} className="w-full text-gray-500 py-3 mt-2 text-sm">إلغاء</button>
-                            </div>
+                                <div className="flex gap-3 pt-4">
+                                    <button type="submit" className="flex-1 btn-action py-3 rounded-xl font-bold">حفظ</button>
+                                    <button type="button" onClick={() => setEditingUser(null)} className="flex-1 bg-white/5 py-3 rounded-xl font-bold">إلغاء</button>
+                                </div>
+                            </form>
                         </div>
                     )}
                 </div>
