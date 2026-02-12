@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LSPD | NEXT GEN MDT</title>
+    <title>LSPD | COMMAND CENTER</title>
     
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -14,70 +14,53 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;500;700;900&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
 
     <style>
-        :root {
-            --bg-dark: #09090b;
-            --accent-blue: #3b82f6;
-            --accent-cyan: #06b6d4;
-            --accent-red: #ef4444;
-            --glass: rgba(24, 24, 27, 0.6);
-            --border: rgba(255, 255, 255, 0.08);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg-dark); color: #e4e4e7; overflow: hidden; height: 100vh; width: 100vw; }
+        :root { --bg: #09090b; --primary: #3b82f6; --danger: #ef4444; --success: #10b981; --glass: rgba(24, 24, 27, 0.8); }
+        body { background-color: var(--bg); color: #e4e4e7; overflow: hidden; height: 100vh; font-family: 'Cairo', sans-serif; }
         
-        /* خلفية شبكية خفيفة */
-        body::before {
-            content: ""; position: absolute; inset: 0;
-            background-image: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
-                              linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-            background-size: 100% 100%, 40px 40px, 40px 40px;
-            z-index: -1; pointer-events: none;
+        /* تأثيرات الخلفية */
+        .grid-bg {
+            position: fixed; inset: 0; z-index: -1;
+            background-image: linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
         }
 
-        /* سكرول بار مخفي */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Inputs & Forms */
+        /* المدخلات */
         .glass-input {
-            background: rgba(0, 0, 0, 0.3); border: 1px solid var(--border);
-            border-radius: 12px; color: white; padding: 16px; width: 100%;
-            transition: 0.3s; outline: none; font-size: 14px;
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px; color: white; padding: 14px; width: 100%; outline: none; transition: 0.3s;
         }
-        .glass-input:focus { border-color: var(--accent-blue); box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
-
-        /* Cards */
-        .cyber-card {
-            background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
-            backdrop-filter: blur(10px); border: 1px solid var(--border);
-            border-radius: 16px; overflow: hidden; position: relative;
-        }
+        .glass-input:focus { border-color: var(--primary); background: rgba(59, 130, 246, 0.05); }
         
-        /* Animations */
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        
-        @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 5px var(--accent-red); } 50% { box-shadow: 0 0 20px var(--accent-red); } }
-        .status-red { animation: pulse-glow 2s infinite; }
+        /* القوائم المنسدلة */
+        select.glass-input { color: #fff; appearance: none; }
+        select.glass-input option { background: #18181b; color: white; }
 
-        /* Bottom Nav */
-        .nav-glass {
-            background: rgba(9, 9, 11, 0.85); backdrop-filter: blur(16px);
-            border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom);
+        /* الأزرار */
+        .btn-neon {
+            background: linear-gradient(45deg, var(--primary), #2563eb);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); border: none;
         }
-        .nav-item.active { color: var(--accent-cyan); text-shadow: 0 0 10px rgba(6, 182, 212, 0.6); }
-        .nav-item.active i { transform: translateY(-4px); }
+        .btn-danger {
+            background: linear-gradient(45deg, var(--danger), #b91c1c);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); border: none;
+        }
+
+        /* التحريكات */
+        .slide-up { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* سكرول بار */
+        .hide-scroll::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
+    <div class="grid-bg"></div>
     <div id="root"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, setDoc, doc, deleteDoc, query, orderBy, addDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
-        
+        import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
         const firebaseConfig = { 
             apiKey: "AIzaSyCYgffN2dA7IILMbI2i_1YfERkKWIrpHyA", 
             authDomain: "ek-police.firebaseapp.com", 
@@ -88,280 +71,312 @@
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        window.fb = { db, collection, onSnapshot, setDoc, doc, deleteDoc, query, orderBy, addDoc, updateDoc, serverTimestamp };
+        window.fb = { db, collection, onSnapshot, addDoc, serverTimestamp, query, orderBy };
     </script>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const { useState, useEffect } = React;
 
-        /* --- Components --- */
-        
-        // بطاقة الإحصائيات العلوية
-        const StatCard = ({ title, value, icon, color }) => (
-            <div className="cyber-card p-4 flex flex-col justify-between h-24 relative overflow-hidden group">
-                <div className={`absolute -right-4 -top-4 w-20 h-20 bg-${color}-500/10 rounded-full blur-xl group-hover:bg-${color}-500/20 transition-all`}></div>
-                <div className="flex justify-between items-start z-10">
-                    <span className="text-gray-400 text-xs font-bold tracking-wider">{title}</span>
-                    <i className={`fas ${icon} text-${color}-500 text-lg`}></i>
-                </div>
-                <span className="text-3xl font-black font-[Rajdhani] z-10">{value}</span>
+        /* --- مكون التنبيهات --- */
+        const Toast = ({ msg, type }) => (
+            <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[200] px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 slide-up ${type === 'success' ? 'bg-green-500/90 text-black' : 'bg-red-500/90 text-white'}`}>
+                <i className={`fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}`}></i>
+                <span className="font-bold text-sm">{msg}</span>
             </div>
         );
 
-        // بطاقة المطلوبين
-        const WantedCard = ({ data }) => (
-            <div className="cyber-card mb-4 flex gap-4 p-3 animate-slide-up border-r-2 border-r-red-500">
-                <img src={data.photo || 'https://via.placeholder.com/150'} className="w-20 h-20 rounded-xl object-cover bg-gray-800" />
-                <div className="flex-1 flex flex-col justify-center">
-                    <div className="flex justify-between items-start">
-                        <h3 className="text-lg font-bold text-white leading-tight">{data.name}</h3>
-                        <span className="bg-red-500/20 text-red-500 text-[10px] px-2 py-1 rounded font-bold uppercase tracking-wider animate-pulse">مطلوب</span>
-                    </div>
-                    <p className="text-gray-400 text-xs mt-1 line-clamp-2">{data.charge}</p>
-                    <div className="mt-2 flex gap-2">
-                        <button className="text-[10px] bg-white/5 hover:bg-white/10 px-3 py-1 rounded border border-white/5 transition">التفاصيل</button>
-                    </div>
-                </div>
-            </div>
-        );
-
-        // التطبيق الرئيسي
         const App = () => {
-            const [user, setUser] = useState(null);
-            const [view, setView] = useState('login'); // login, home, wanted, reports, civil
+            const [user, setUser] = useState(null); // يمكن حفظ الجلسة في LocalStorage
+            const [view, setView] = useState('login');
+            const [modal, setModal] = useState(null); // 'officer', 'civilian', 'wanted', 'report'
+            const [toast, setToast] = useState(null);
             const [data, setData] = useState({ users: [], wanted: [], reports: [], civilians: [] });
-            const [loading, setLoading] = useState(true);
-            const [modal, setModal] = useState(null);
 
             // جلب البيانات
             useEffect(() => {
                 if (!window.fb) return;
                 const db = window.fb.db;
-                const unsubs = [
-                    window.fb.onSnapshot(window.fb.collection(db, "users"), s => setData(p => ({...p, users: s.docs.map(d => ({...d.data(), id: d.id}))}))),
-                    window.fb.onSnapshot(window.fb.collection(db, "wanted"), s => setData(p => ({...p, wanted: s.docs.map(d => ({...d.data(), id: d.id}))}))),
-                    window.fb.onSnapshot(window.fb.query(window.fb.collection(db, "field_reports"), window.fb.orderBy("createdAt", "desc")), s => setData(p => ({...p, reports: s.docs.map(d => ({...d.data(), id: d.id}))}))),
-                    window.fb.onSnapshot(window.fb.collection(db, "civilians"), s => setData(p => ({...p, civilians: s.docs.map(d => ({...d.data(), id: d.id}))}))),
-                ];
-                setLoading(false);
-                return () => unsubs.forEach(u => u());
+                
+                // الاستماع للبيانات الحية
+                window.fb.onSnapshot(window.fb.collection(db, "users"), s => setData(p => ({...p, users: s.docs.map(d => ({...d.data(), id: d.id}))})));
+                window.fb.onSnapshot(window.fb.collection(db, "wanted"), s => setData(p => ({...p, wanted: s.docs.map(d => ({...d.data(), id: d.id}))})));
+                window.fb.onSnapshot(window.fb.collection(db, "civilians"), s => setData(p => ({...p, civilians: s.docs.map(d => ({...d.data(), id: d.id}))})));
+                window.fb.onSnapshot(window.fb.query(window.fb.collection(db, "field_reports"), window.fb.orderBy("createdAt", "desc")), s => setData(p => ({...p, reports: s.docs.map(d => ({...d.data(), id: d.id}))})));
             }, []);
+
+            // إظهار تنبيه
+            const showToast = (msg, type = 'success') => {
+                setToast({ msg, type });
+                setTimeout(() => setToast(null), 3000);
+            };
 
             // تسجيل الدخول
             const handleLogin = () => {
-                const id = document.getElementById('uid').value;
-                const pw = document.getElementById('upw').value;
+                const id = document.getElementById('login_id').value;
+                const pw = document.getElementById('login_pw').value;
                 const found = data.users.find(u => u.id === id && u.password === pw);
-                
                 if (found) {
                     setUser(found);
                     setView('home');
+                    showToast(`أهلاً بك يا ${found.rank}`, 'success');
                 } else {
-                    alert("بيانات غير صحيحة ❌");
+                    showToast('بيانات الدخول خاطئة', 'error');
                 }
             };
 
-            // إضافة تقرير
-            const submitReport = async () => {
-                const txt = document.getElementById('rep_txt').value;
-                if(!txt) return;
-                await window.fb.addDoc(window.fb.collection(window.fb.db, "field_reports"), {
-                    content: txt,
-                    author: user.name,
-                    createdAt: window.fb.serverTimestamp()
-                });
-                setModal(null);
+            // دالة الإضافة الشاملة
+            const handleSubmit = async () => {
+                const db = window.fb.db;
+                try {
+                    if (modal === 'officer') {
+                        const name = document.getElementById('off_name').value;
+                        const rank = document.getElementById('off_rank').value;
+                        const badge = document.getElementById('off_badge').value; // هذا سيكون ID
+                        const pass = document.getElementById('off_pass').value;
+                        
+                        // إضافة في كولكشن users مع تحديد ID المستند كرقم الشارة
+                        await window.fb.setDoc(window.fb.doc(db, "users", badge), {
+                            name, rank, password: pass, createdAt: window.fb.serverTimestamp()
+                        });
+                        showToast('تم توظيف الضابط بنجاح');
+                    }
+                    
+                    else if (modal === 'civilian') {
+                        await window.fb.addDoc(window.fb.collection(db, "civilians"), {
+                            name: document.getElementById('civ_name').value,
+                            sonyId: document.getElementById('civ_id').value,
+                            phone: document.getElementById('civ_phone').value,
+                            gender: document.getElementById('civ_gender').value,
+                            photo: 'https://via.placeholder.com/150', // يمكن تطويرها لرفع صور لاحقاً
+                            createdAt: window.fb.serverTimestamp()
+                        });
+                        showToast('تم تسجيل المواطن');
+                    }
+
+                    else if (modal === 'wanted') {
+                        await window.fb.addDoc(window.fb.collection(db, "wanted"), {
+                            name: document.getElementById('wan_name').value,
+                            charge: document.getElementById('wan_charge').value,
+                            danger: document.getElementById('wan_danger').value,
+                            photo: 'https://via.placeholder.com/150',
+                            status: 'active',
+                            createdAt: window.fb.serverTimestamp()
+                        });
+                        showToast('تم تعميم البلاغ');
+                    }
+
+                    else if (modal === 'report') {
+                        await window.fb.addDoc(window.fb.collection(db, "field_reports"), {
+                            content: document.getElementById('rep_content').value,
+                            type: document.getElementById('rep_type').value,
+                            author: user.name,
+                            authorRank: user.rank,
+                            createdAt: window.fb.serverTimestamp()
+                        });
+                        showToast('تم إرسال التقرير');
+                    }
+
+                    setModal(null);
+                } catch (e) {
+                    console.error(e);
+                    showToast('حدث خطأ أثناء العملية', 'error');
+                }
             };
 
-            // شاشة تسجيل الدخول
+            /* --- الشاشات --- */
             if (!user) return (
-                <div className="h-screen w-full flex flex-col justify-center items-center p-8 relative">
-                    <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-blue-900/20 to-transparent pointer-events-none"></div>
-                    
-                    <div className="w-full max-w-sm space-y-8 z-10 animate-slide-up">
-                        <div className="text-center space-y-2">
-                            <div className="w-24 h-24 mx-auto bg-gradient-to-tr from-blue-600 to-cyan-400 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 mb-6">
-                                <i className="fas fa-shield-alt text-4xl text-white"></i>
-                            </div>
-                            <h1 className="text-4xl font-black text-white tracking-tighter">MDT <span className="text-cyan-400">SYSTEM</span></h1>
-                            <p className="text-gray-400 text-sm tracking-widest uppercase">وزارة الداخلية - بوابة الموظفين</p>
+                <div className="h-screen flex items-center justify-center p-6 relative">
+                    {toast && <Toast msg={toast.msg} type={toast.type} />}
+                    <div className="w-full max-w-sm bg-[#121215] p-8 rounded-3xl border border-white/5 shadow-2xl relative overflow-hidden slide-up">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+                        <div className="text-center mb-8">
+                            <i className="fas fa-fingerprint text-5xl text-blue-500 mb-4 animate-pulse"></i>
+                            <h1 className="text-3xl font-black text-white">SYSTEM ACCESS</h1>
+                            <p className="text-gray-500 text-xs tracking-widest mt-2">RESTRICTED AREA</p>
                         </div>
-
-                        <div className="space-y-4 backdrop-blur-sm bg-white/5 p-6 rounded-2xl border border-white/10">
-                            <div>
-                                <label className="text-xs text-gray-500 font-bold mr-2 block mb-2">الرقم العسكري</label>
-                                <input id="uid" type="number" className="glass-input text-center font-[Rajdhani] font-bold text-lg tracking-widest" placeholder="10XX" />
-                            </div>
-                            <div>
-                                <label className="text-xs text-gray-500 font-bold mr-2 block mb-2">كلمة المرور</label>
-                                <input id="upw" type="password" className="glass-input text-center" placeholder="••••••" />
-                            </div>
-                            <button onClick={handleLogin} className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold shadow-lg shadow-blue-600/30 transition-all active:scale-95 mt-4">
-                                تسجيل الدخول للنظام
-                            </button>
+                        <div className="space-y-4">
+                            <input id="login_id" type="number" placeholder="الرقم العسكري" className="glass-input text-center font-[Rajdhani] font-bold text-lg" />
+                            <input id="login_pw" type="password" placeholder="كلمة المرور" className="glass-input text-center" />
+                            <button onClick={handleLogin} className="w-full btn-neon py-4 rounded-xl text-white font-bold mt-4">تسجيل الدخول</button>
                         </div>
                     </div>
-                    
-                    <p className="absolute bottom-8 text-gray-600 text-[10px]">SECURE CONNECTION ESTABLISHED v2.0</p>
                 </div>
             );
 
-            // الواجهة الرئيسية
             return (
-                <div className="h-screen flex flex-col">
+                <div className="h-screen flex flex-col relative">
+                    {toast && <Toast msg={toast.msg} type={toast.type} />}
+                    
                     {/* Header */}
-                    <header className="px-6 pt-12 pb-4 flex justify-between items-end bg-gradient-to-b from-black/80 to-transparent sticky top-0 z-50 backdrop-blur-sm">
+                    <header className="p-5 flex justify-between items-center bg-[#121215]/80 backdrop-blur border-b border-white/5">
                         <div>
-                            <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">{user.rank}</p>
-                            <h2 className="text-2xl font-black text-white leading-none">{user.name.split(' ')[0]}</h2>
+                            <h2 className="text-xl font-black text-white">LSPD <span className="text-blue-500">MDT</span></h2>
+                            <p className="text-[10px] text-gray-400">مرحباً, {user.rank} {user.name}</p>
                         </div>
-                        <div className="w-10 h-10 rounded-full bg-gray-800 border border-white/10 overflow-hidden">
-                             {/* صورة افتراضية */}
-                             <div className="w-full h-full flex items-center justify-center bg-blue-600 font-bold">{user.name[0]}</div>
+                        <div onClick={() => setView('login')} className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 cursor-pointer">
+                            <i className="fas fa-power-off"></i>
                         </div>
                     </header>
 
-                    {/* Content Area */}
-                    <main className="flex-1 overflow-y-auto p-5 pb-24 no-scrollbar space-y-6">
+                    {/* Main Content */}
+                    <main className="flex-1 overflow-y-auto p-4 pb-24 hide-scroll">
                         
-                        {view === 'home' && (
-                            <div className="animate-slide-up space-y-6">
-                                {/* Stats Grid */}
-                                <div className="grid grid-cols-2 gap-3">
-                                    <StatCard title="إجمالي القوة" value={data.users.length} icon="fa-users" color="blue" />
-                                    <StatCard title="المطلوبين" value={data.wanted.length} icon="fa-exclamation-triangle" color="red" />
-                                    <StatCard title="البلاغات" value={data.reports.length} icon="fa-file-alt" color="cyan" />
-                                    <StatCard title="المواطنين" value={data.civilians.length} icon="fa-id-card" color="purple" />
-                                </div>
+                        {/* Quick Actions Grid */}
+                        <div className="grid grid-cols-4 gap-2 mb-6 slide-up">
+                            <button onClick={() => setModal('report')} className="bg-[#1c1c1f] p-3 rounded-xl flex flex-col items-center gap-2 active:scale-95 transition border border-white/5">
+                                <i className="fas fa-file-alt text-blue-400 text-lg"></i>
+                                <span className="text-[9px] font-bold">تقرير</span>
+                            </button>
+                            <button onClick={() => setModal('civilian')} className="bg-[#1c1c1f] p-3 rounded-xl flex flex-col items-center gap-2 active:scale-95 transition border border-white/5">
+                                <i className="fas fa-user-plus text-purple-400 text-lg"></i>
+                                <span className="text-[9px] font-bold">مدني</span>
+                            </button>
+                            <button onClick={() => setModal('wanted')} className="bg-[#1c1c1f] p-3 rounded-xl flex flex-col items-center gap-2 active:scale-95 transition border border-white/5">
+                                <i className="fas fa-skull text-red-400 text-lg"></i>
+                                <span className="text-[9px] font-bold">مطلوب</span>
+                            </button>
+                            <button onClick={() => setModal('officer')} className="bg-[#1c1c1f] p-3 rounded-xl flex flex-col items-center gap-2 active:scale-95 transition border border-white/5">
+                                <i className="fas fa-user-shield text-green-400 text-lg"></i>
+                                <span className="text-[9px] font-bold">موظف</span>
+                            </button>
+                        </div>
 
-                                {/* Quick Actions */}
-                                <div className="space-y-3">
-                                    <h3 className="text-gray-400 text-xs font-bold mr-1">عمليات سريعة</h3>
-                                    <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
-                                        <button onClick={()=>setModal('addReport')} className="bg-white/5 border border-white/10 px-6 py-4 rounded-xl flex flex-col items-center gap-2 min-w-[100px] hover:bg-white/10 transition">
-                                            <i className="fas fa-edit text-cyan-400 text-xl"></i>
-                                            <span className="text-[10px] font-bold">تقرير جديد</span>
-                                        </button>
-                                        <button onClick={()=>alert('قريباً')} className="bg-white/5 border border-white/10 px-6 py-4 rounded-xl flex flex-col items-center gap-2 min-w-[100px] hover:bg-white/10 transition">
-                                            <i className="fas fa-search text-purple-400 text-xl"></i>
-                                            <span className="text-[10px] font-bold">بحث مدني</span>
-                                        </button>
-                                        <button onClick={()=>alert('قريباً')} className="bg-white/5 border border-white/10 px-6 py-4 rounded-xl flex flex-col items-center gap-2 min-w-[100px] hover:bg-white/10 transition">
-                                            <i className="fas fa-user-plus text-green-400 text-xl"></i>
-                                            <span className="text-[10px] font-bold">إضافة مطلوب</span>
-                                        </button>
+                        {/* View Switcher */}
+                        {view === 'home' && (
+                            <div className="space-y-6 slide-up">
+                                {/* Wanted Section */}
+                                <div>
+                                    <h3 className="font-bold text-gray-400 text-xs mb-3 flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span> المطلوبين حالياً
+                                    </h3>
+                                    <div className="flex gap-3 overflow-x-auto hide-scroll pb-2">
+                                        {data.wanted.map(w => (
+                                            <div key={w.id} className="min-w-[140px] bg-[#18181b] p-3 rounded-xl border border-red-500/20 relative overflow-hidden">
+                                                <div className="absolute top-0 right-0 p-1 bg-red-500/20 text-red-500 text-[8px] font-bold rounded-bl-lg">WANTED</div>
+                                                <div className="w-12 h-12 bg-gray-700 rounded-full mx-auto mb-2 overflow-hidden">
+                                                    <img src={w.photo} className="w-full h-full object-cover" />
+                                                </div>
+                                                <p className="text-center font-bold text-sm truncate">{w.name}</p>
+                                                <p className="text-center text-[10px] text-red-400 truncate">{w.charge}</p>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
 
-                                {/* Recent Reports Ticker */}
+                                {/* Recent Reports */}
                                 <div>
-                                    <h3 className="text-gray-400 text-xs font-bold mr-1 mb-3">آخر البرقيات</h3>
+                                    <h3 className="font-bold text-gray-400 text-xs mb-3">آخر البلاغات</h3>
                                     <div className="space-y-3">
-                                        {data.reports.slice(0, 3).map(r => (
-                                            <div key={r.id} className="cyber-card p-4 border-l-2 border-l-cyan-500">
-                                                <div className="flex justify-between mb-1">
-                                                    <span className="text-cyan-400 text-[10px] font-bold">{r.author}</span>
-                                                    <span className="text-gray-500 text-[10px]">الآن</span>
+                                        {data.reports.map(r => (
+                                            <div key={r.id} className="bg-[#18181b] p-4 rounded-xl border-r-2 border-blue-500 flex gap-3">
+                                                <div className="flex-1">
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <span className="text-blue-400 text-[10px] font-bold bg-blue-400/10 px-2 py-0.5 rounded">{r.type}</span>
+                                                        <span className="text-gray-600 text-[9px]">{r.author}</span>
+                                                    </div>
+                                                    <p className="text-sm text-gray-300 leading-relaxed">{r.content}</p>
                                                 </div>
-                                                <p className="text-sm text-gray-300 leading-relaxed">{r.content}</p>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             </div>
                         )}
-
-                        {view === 'wanted' && (
-                            <div className="animate-slide-up">
-                                <h1 className="text-2xl font-black mb-4 flex items-center gap-2">
-                                    <span className="w-2 h-8 bg-red-600 rounded-full block"></span>
-                                    قائمة المطلوبين
-                                </h1>
-                                {data.wanted.map(w => <WantedCard key={w.id} data={w} />)}
-                            </div>
-                        )}
-
-                        {view === 'reports' && (
-                            <div className="animate-slide-up pb-20">
-                                <div className="flex justify-between items-center mb-4">
-                                    <h1 className="text-2xl font-black">التقارير الميدانية</h1>
-                                    <button onClick={()=>setModal('addReport')} className="bg-cyan-500 text-black w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg shadow-cyan-500/30">
-                                        <i className="fas fa-plus"></i>
-                                    </button>
-                                </div>
-                                <div className="space-y-4">
-                                    {data.reports.map(r => (
-                                        <div key={r.id} className="cyber-card p-4">
-                                            <div className="flex items-center gap-3 mb-3 border-b border-white/5 pb-3">
-                                                <div className="w-8 h-8 rounded-full bg-blue-900 flex items-center justify-center text-blue-400 text-xs font-bold">
-                                                    {r.author[0]}
-                                                </div>
-                                                <div>
-                                                    <p className="font-bold text-sm">{r.author}</p>
-                                                    <p className="text-[10px] text-gray-500">تقرير رسمي</p>
-                                                </div>
-                                            </div>
-                                            <p className="text-gray-300 text-sm whitespace-pre-wrap">{r.content}</p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {view === 'civil' && (
-                             <div className="animate-slide-up">
-                                <h1 className="text-2xl font-black mb-4">السجل المدني</h1>
-                                <input placeholder="بحث عن مواطن (الاسم / الهوية)..." className="glass-input mb-4" />
-                                <div className="grid grid-cols-2 gap-3">
+                        
+                        {view === 'civilians_list' && (
+                             <div className="slide-up">
+                                <h3 className="font-bold text-xl mb-4">قاعدة البيانات المدنية</h3>
+                                <div className="space-y-3">
                                     {data.civilians.map(c => (
-                                        <div key={c.id} className="cyber-card p-3 text-center">
-                                            <img src={c.photo} className="w-16 h-16 mx-auto rounded-full mb-2 object-cover border border-purple-500/30" />
-                                            <p className="font-bold text-sm truncate">{c.name}</p>
-                                            <p className="text-[10px] text-gray-500 font-[Rajdhani]">{c.sonyId}</p>
+                                        <div key={c.id} className="bg-[#18181b] p-3 rounded-xl flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-lg">
+                                                {c.name[0]}
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold">{c.name}</h4>
+                                                <p className="text-xs text-gray-500 font-[Rajdhani]">ID: {c.sonyId}</p>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
-                            </div>
+                             </div>
                         )}
-
                     </main>
 
-                    {/* Bottom Navigation */}
-                    <nav className="nav-glass fixed bottom-0 left-0 w-full flex justify-around items-center h-[80px] z-50">
-                        <button onClick={() => setView('home')} className={`nav-item flex flex-col items-center gap-1 transition-all duration-300 ${view === 'home' ? 'active scale-110' : 'text-gray-600'}`}>
-                            <i className="fas fa-home text-xl"></i>
-                            <span className="text-[10px] font-bold">الرئيسية</span>
-                        </button>
-                        <button onClick={() => setView('wanted')} className={`nav-item flex flex-col items-center gap-1 transition-all duration-300 ${view === 'wanted' ? 'active scale-110' : 'text-gray-600'}`}>
-                            <i className="fas fa-skull text-xl"></i>
-                            <span className="text-[10px] font-bold">المطلوبين</span>
-                        </button>
-                        <button onClick={() => setView('reports')} className={`nav-item flex flex-col items-center gap-1 transition-all duration-300 ${view === 'reports' ? 'active scale-110' : 'text-gray-600'}`}>
-                            <i className="fas fa-clipboard-list text-xl"></i>
-                            <span className="text-[10px] font-bold">التقارير</span>
-                        </button>
-                        <button onClick={() => setView('civil')} className={`nav-item flex flex-col items-center gap-1 transition-all duration-300 ${view === 'civil' ? 'active scale-110' : 'text-gray-600'}`}>
-                            <i className="fas fa-id-card text-xl"></i>
-                            <span className="text-[10px] font-bold">المدني</span>
-                        </button>
+                    {/* Bottom Nav */}
+                    <nav className="fixed bottom-0 w-full bg-[#09090b]/90 backdrop-blur border-t border-white/5 p-4 flex justify-around z-40">
+                        <button onClick={() => setView('home')} className={`text-2xl transition ${view === 'home' ? 'text-blue-500' : 'text-gray-600'}`}><i className="fas fa-home"></i></button>
+                        <button onClick={() => setView('civilians_list')} className={`text-2xl transition ${view === 'civilians_list' ? 'text-purple-500' : 'text-gray-600'}`}><i className="fas fa-users"></i></button>
+                        <button className="w-14 h-14 bg-gradient-to-tr from-blue-600 to-cyan-500 rounded-full -mt-8 shadow-lg shadow-blue-500/30 flex items-center justify-center text-white text-2xl border-4 border-[#09090b]" onClick={() => setModal('report')}><i className="fas fa-plus"></i></button>
+                        <button className="text-2xl text-gray-600"><i className="fas fa-search"></i></button>
+                        <button className="text-2xl text-gray-600"><i className="fas fa-cog"></i></button>
                     </nav>
 
-                    {/* Modal (Popup) */}
+                    {/* Universal Modal */}
                     {modal && (
-                        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center">
-                            <div className="bg-[#18181b] border-t border-white/10 w-full sm:w-96 rounded-t-3xl sm:rounded-2xl p-6 animate-slide-up shadow-2xl shadow-black">
-                                <div className="w-12 h-1 bg-gray-700 rounded-full mx-auto mb-6"></div>
+                        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+                            <div className="bg-[#18181b] w-full sm:w-96 rounded-t-3xl sm:rounded-3xl p-6 border-t border-white/10 slide-up max-h-[90vh] overflow-y-auto">
+                                <div className="w-12 h-1.5 bg-gray-700 rounded-full mx-auto mb-6"></div>
                                 
-                                {modal === 'addReport' && (
+                                {modal === 'officer' && (
                                     <div className="space-y-4">
-                                        <h3 className="text-xl font-bold text-center text-white">إضافة تقرير جديد</h3>
-                                        <textarea id="rep_txt" className="glass-input h-32 resize-none" placeholder="اكتب تفاصيل الواقعة هنا..."></textarea>
-                                        <div className="flex gap-3">
-                                            <button onClick={submitReport} className="flex-1 bg-cyan-600 py-3 rounded-xl font-bold text-black">إرسال</button>
-                                            <button onClick={()=>setModal(null)} className="flex-1 bg-white/10 py-3 rounded-xl font-bold text-gray-300">إلغاء</button>
-                                        </div>
+                                        <h3 className="text-xl font-bold text-center text-green-400 mb-4">توظيف ضابط جديد</h3>
+                                        <input id="off_name" placeholder="الاسم الثلاثي" className="glass-input" />
+                                        <input id="off_badge" type="number" placeholder="الرقم العسكري (للدخول)" className="glass-input" />
+                                        <select id="off_rank" className="glass-input">
+                                            <option value="طالب">طالب</option>
+                                            <option value="شرطي">شرطي</option>
+                                            <option value="رقيب">رقيب</option>
+                                            <option value="ملازم">ملازم</option>
+                                            <option value="لواء">لواء</option>
+                                        </select>
+                                        <input id="off_pass" type="password" placeholder="كلمة المرور" className="glass-input" />
+                                        <button onClick={handleSubmit} className="w-full btn-neon py-3 rounded-xl font-bold text-white mt-2">إضافة للسجل</button>
                                     </div>
                                 )}
+
+                                {modal === 'civilian' && (
+                                    <div className="space-y-4">
+                                        <h3 className="text-xl font-bold text-center text-purple-400 mb-4">تسجيل مواطن</h3>
+                                        <input id="civ_name" placeholder="الاسم الكامل" className="glass-input" />
+                                        <input id="civ_id" placeholder="رقم الهوية / ديسكورد" className="glass-input" />
+                                        <input id="civ_phone" type="tel" placeholder="رقم الجوال" className="glass-input" />
+                                        <select id="civ_gender" className="glass-input">
+                                            <option value="ذكر">ذكر</option>
+                                            <option value="أنثى">أنثى</option>
+                                        </select>
+                                        <button onClick={handleSubmit} className="w-full btn-neon py-3 rounded-xl font-bold text-white mt-2">حفظ البيانات</button>
+                                    </div>
+                                )}
+
+                                {modal === 'wanted' && (
+                                    <div className="space-y-4">
+                                        <h3 className="text-xl font-bold text-center text-red-500 mb-4">إضافة مطلوب أمني</h3>
+                                        <input id="wan_name" placeholder="اسم المطلوب" className="glass-input" />
+                                        <input id="wan_charge" placeholder="التهمة الموجهة" className="glass-input" />
+                                        <select id="wan_danger" className="glass-input text-red-400">
+                                            <option value="low">خطورة منخفضة</option>
+                                            <option value="medium">خطورة متوسطة</option>
+                                            <option value="high">خطر جداً (مسلح)</option>
+                                        </select>
+                                        <button onClick={handleSubmit} className="w-full btn-danger py-3 rounded-xl font-bold text-white mt-2">تعميم البلاغ</button>
+                                    </div>
+                                )}
+
+                                {modal === 'report' && (
+                                    <div className="space-y-4">
+                                        <h3 className="text-xl font-bold text-center text-blue-400 mb-4">كتابة تقرير</h3>
+                                        <select id="rep_type" className="glass-input">
+                                            <option value="دورية">تقرير دورية</option>
+                                            <option value="اعتقال">تقرير اعتقال</option>
+                                            <option value="حادث">تقرير حادث</option>
+                                        </select>
+                                        <textarea id="rep_content" className="glass-input h-32 resize-none" placeholder="تفاصيل الواقعة..."></textarea>
+                                        <button onClick={handleSubmit} className="w-full btn-neon py-3 rounded-xl font-bold text-white mt-2">إرسال للعمليات</button>
+                                    </div>
+                                )}
+
+                                <button onClick={() => setModal(null)} className="w-full text-gray-500 py-3 mt-2 text-sm">إلغاء</button>
                             </div>
                         </div>
                     )}
