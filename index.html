@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FBI | ADMINISTRATION SYSTEM</title>
+    <title>FBI | CENTRAL INTELLIGENCE SYSTEM</title>
     
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -11,32 +11,33 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;600;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
 
     <style>
-        :root { --bg: #050507; --accent: #3b82f6; --danger: #ef4444; --card-bg: rgba(20, 20, 25, 0.8); }
-        body { background-color: var(--bg); color: #fff; font-family: 'Cairo', sans-serif; overflow: hidden; height: 100vh; }
+        :root { --fbi-blue: #1e3a8a; --fbi-gold: #fbbf24; --danger: #ef4444; --bg: #020617; }
+        body { background-color: var(--bg); color: #f8fafc; font-family: 'Cairo', sans-serif; overflow: hidden; height: 100vh; }
         
-        .cyber-grid {
+        .fbi-grid {
             position: fixed; inset: 0; z-index: -1;
-            background-image: linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
-            background-size: 40px 40px;
+            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+            background-size: 24px 24px;
         }
 
-        .glass-card { background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; }
-        .glass-input { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; color: white; width: 100%; outline: none; transition: 0.3s; }
-        .glass-input:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
+        .glass-panel { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; }
+        .input-fbi { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; color: white; width: 100%; transition: 0.3s; }
+        .input-fbi:focus { border-color: var(--fbi-gold); outline: none; box-shadow: 0 0 10px rgba(251, 191, 36, 0.2); }
 
-        .btn-action { background: linear-gradient(135deg, #3b82f6, #1d4ed8); transition: 0.3s; }
-        .btn-action:active { transform: scale(0.95); }
+        .nav-btn { color: #64748b; transition: 0.3s; display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; gap: 4px; }
+        .nav-btn.active { color: var(--fbi-gold); }
 
+        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
         .hide-scroll::-webkit-scrollbar { display: none; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .animate-up { animation: slideUp 0.4s ease-out; }
     </style>
 </head>
 <body>
-    <div class="cyber-grid"></div>
+    <div class="fbi-grid"></div>
     <div id="root"></div>
 
     <script type="module">
@@ -69,68 +70,61 @@
 
         const App = () => {
             const [user, setUser] = useState(null);
-            const [view, setView] = useState('login'); // login, home, staff
-            const [data, setData] = useState({ users: [], wanted: [], reports: [] });
-            const [editingUser, setEditingUser] = useState(null);
+            const [view, setView] = useState('login'); 
+            const [data, setData] = useState({ users: [], wanted: [], reports: [], civilians: [] });
+            const [modal, setModal] = useState(null);
+            const [editTarget, setEditTarget] = useState(null);
 
             useEffect(() => {
                 if (!window.fb) return;
                 const db = window.fb.db;
                 const unsubs = [
                     window.fb.onSnapshot(window.fb.collection(db, "users"), s => setData(p => ({...p, users: s.docs.map(d => ({...d.data(), id: d.id}))}))),
-                    window.fb.onSnapshot(window.fb.collection(db, "field_reports"), s => setData(p => ({...p, reports: s.docs.map(d => ({...d.data(), id: d.id}))})))
+                    window.fb.onSnapshot(window.fb.collection(db, "wanted"), s => setData(p => ({...p, wanted: s.docs.map(d => ({...d.data(), id: d.id}))}))),
+                    window.fb.onSnapshot(window.fb.collection(db, "civilians"), s => setData(p => ({...p, civilians: s.docs.map(d => ({...d.data(), id: d.id}))}))),
+                    window.fb.onSnapshot(window.fb.query(window.fb.collection(db, "field_reports"), window.fb.orderBy("createdAt", "desc")), s => setData(p => ({...p, reports: s.docs.map(d => ({...d.data(), id: d.id}))})))
                 ];
                 return () => unsubs.forEach(u => u());
             }, []);
 
             const handleLogin = () => {
-                const id = document.getElementById('l_id').value;
-                const pw = document.getElementById('l_pw').value;
+                const id = document.getElementById('login_id').value;
+                const pw = document.getElementById('login_pw').value;
                 const found = data.users.find(u => u.id === id && u.password === pw);
                 if (found) { setUser(found); setView('home'); }
-                else alert("خطأ في البيانات");
+                else alert("Access Denied: Invalid Credentials");
             };
 
-            const saveUser = async (e) => {
+            const isAdmin = user && RANKS.slice(0, 5).includes(user.rank);
+
+            // إضافة وتعديل شامل
+            const handleFormSubmit = async (e, collectionName) => {
                 e.preventDefault();
                 const formData = new FormData(e.target);
-                const userData = Object.fromEntries(formData);
+                const values = Object.fromEntries(formData);
                 const db = window.fb.db;
-                
-                await window.fb.setDoc(window.fb.doc(db, "users", userData.id), {
-                    name: userData.name,
-                    rank: userData.rank,
-                    password: userData.password,
-                    updatedAt: window.fb.serverTimestamp()
-                }, { merge: true });
-                
-                setEditingUser(null);
-                alert("تم حفظ بيانات الموظف");
-            };
 
-            const deleteUser = async (id) => {
-                if(confirm("هل أنت متأكد من فصل هذا الموظف؟")) {
-                    await window.fb.deleteDoc(window.fb.doc(window.fb.db, "users", id));
-                }
+                try {
+                    if (collectionName === 'users') {
+                        await window.fb.setDoc(window.fb.doc(db, "users", values.id), { ...values, createdAt: window.fb.serverTimestamp() }, { merge: true });
+                    } else {
+                        await window.fb.addDoc(window.fb.collection(db, collectionName), { ...values, author: user.name, createdAt: window.fb.serverTimestamp() });
+                    }
+                    setModal(null);
+                    setEditTarget(null);
+                } catch (err) { alert("Error: " + err.message); }
             };
-
-            // التحقق من صلاحية الإدارة (Director down to Assistant Director)
-            const isAdmin = user && RANKS.slice(0, 5).includes(user.rank);
 
             if (view === 'login') return (
                 <div className="h-screen flex items-center justify-center p-6">
-                    <div className="w-full max-w-sm glass-card p-8 border-t-4 border-blue-500 animate-up">
-                        <div className="text-center mb-8">
-                            <div className="w-20 h-20 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-blue-500/20 mb-4">
-                                <i className="fas fa-shield-alt text-3xl"></i>
-                            </div>
-                            <h1 className="text-2xl font-black tracking-tighter">FBI TERMINAL</h1>
-                            <p className="text-gray-500 text-[10px] uppercase mt-1">Authorized Access Only</p>
-                        </div>
+                    <div className="w-full max-w-sm glass-panel p-8 text-center animate-fade-in border-t-4 border-yellow-500">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Seal_of_the_Federal_Bureau_of_Investigation.svg" className="w-24 h-24 mx-auto mb-6" />
+                        <h1 className="text-2xl font-black mb-2 tracking-widest">FBI TERMINAL</h1>
+                        <p className="text-gray-500 text-[10px] mb-8">DEPARTMENT OF JUSTICE</p>
                         <div className="space-y-4">
-                            <input id="l_id" type="number" placeholder="ID Number" className="glass-input text-center font-bold" />
-                            <input id="l_pw" type="password" placeholder="Password" className="glass-input text-center" />
-                            <button onClick={handleLogin} className="w-full btn-action py-4 rounded-xl font-bold">LOGIN</button>
+                            <input id="login_id" type="text" placeholder="AGENT ID" className="input-fbi text-center font-bold" />
+                            <input id="login_pw" type="password" placeholder="PASSWORD" className="input-fbi text-center" />
+                            <button onClick={handleLogin} className="w-full bg-blue-700 hover:bg-blue-600 py-3 rounded-lg font-bold transition">AUTHENTICATE</button>
                         </div>
                     </div>
                 </div>
@@ -138,56 +132,55 @@
 
             return (
                 <div className="h-screen flex flex-col">
-                    {/* Top Bar */}
-                    <header className="p-6 flex justify-between items-center bg-black/40 backdrop-blur-md border-b border-white/5">
-                        <div>
-                            <h2 className="text-xl font-black text-blue-500">{view === 'staff' ? 'STAFF MANAGEMENT' : 'DASHBOARD'}</h2>
-                            <p className="text-[10px] text-gray-400 uppercase tracking-widest">{user.rank} | {user.name}</p>
+                    {/* Header */}
+                    <header className="p-5 flex justify-between items-center bg-blue-900/20 border-b border-white/5">
+                        <div className="flex items-center gap-3">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Seal_of_the_Federal_Bureau_of_Investigation.svg" className="w-8 h-8" />
+                            <div>
+                                <h2 className="text-sm font-black leading-none">FBI HUB</h2>
+                                <span className="text-[9px] text-yellow-500 font-bold uppercase">{user.rank}</span>
+                            </div>
                         </div>
-                        <button onClick={() => setView(view === 'home' ? 'staff' : 'home')} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
-                            <i className={`fas ${view === 'home' ? 'fa-users-cog' : 'fa-home'}`}></i>
-                        </button>
+                        <div className="text-left">
+                            <p className="text-[10px] text-gray-400">Welcome, Agent</p>
+                            <p className="text-xs font-bold">{user.name}</p>
+                        </div>
                     </header>
 
-                    {/* Content */}
-                    <main className="flex-1 overflow-y-auto p-4 hide-scroll">
-                        
+                    {/* Main Content */}
+                    <main className="flex-1 overflow-y-auto p-4 pb-24 hide-scroll">
                         {view === 'home' && (
-                            <div className="space-y-6 animate-up">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="glass-card p-4 border-r-4 border-blue-500">
-                                        <p className="text-gray-500 text-[10px] font-bold">ACTIVE AGENTS</p>
-                                        <h3 className="text-3xl font-black">{data.users.length}</h3>
+                            <div className="space-y-6 animate-fade-in">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="glass-panel p-4 border-r-2 border-yellow-500">
+                                        <p className="text-[10px] text-gray-500 font-bold">WANTED ENTRIES</p>
+                                        <h3 className="text-2xl font-black">{data.wanted.length}</h3>
                                     </div>
-                                    <div className="glass-card p-4 border-r-4 border-cyan-500">
-                                        <p className="text-gray-500 text-[10px] font-bold">REPORTS FILED</p>
-                                        <h3 className="text-3xl font-black">{data.reports.length}</h3>
+                                    <div className="glass-panel p-4 border-r-2 border-blue-500">
+                                        <p className="text-[10px] text-gray-500 font-bold">TOTAL AGENTS</p>
+                                        <h3 className="text-2xl font-black">{data.users.length}</h3>
                                     </div>
                                 </div>
 
                                 {isAdmin && (
-                                    <button onClick={() => setView('staff')} className="w-full p-4 glass-card flex items-center justify-between group hover:border-blue-500/50 transition">
-                                        <div className="flex items-center gap-4">
-                                            <i className="fas fa-user-shield text-blue-500 text-xl"></i>
-                                            <div className="text-right">
-                                                <h4 className="font-bold">إدارة شؤون الموظفين</h4>
-                                                <p className="text-[10px] text-gray-500">إضافة، تعديل، ترقية، وفصل</p>
-                                            </div>
-                                        </div>
-                                        <i className="fas fa-chevron-left text-gray-700 group-hover:text-blue-500"></i>
-                                    </button>
+                                    <div className="p-4 glass-panel bg-yellow-500/5 border border-yellow-500/20">
+                                        <h4 className="text-xs font-bold text-yellow-500 mb-3 flex items-center gap-2">
+                                            <i className="fas fa-lock"></i> ADMIN COMMANDS
+                                        </h4>
+                                        <button onClick={() => setView('staff')} className="w-full bg-white/5 py-3 rounded-lg text-sm font-bold hover:bg-white/10 transition">Manage Personnel</button>
+                                    </div>
                                 )}
 
                                 <div>
-                                    <h3 className="text-xs font-bold text-gray-500 mb-4 px-2">آخر تقارير الميدان</h3>
+                                    <h4 className="text-xs font-bold text-gray-500 mb-3">RECENT INTELLIGENCE</h4>
                                     <div className="space-y-3">
-                                        {data.reports.slice(0, 5).map(r => (
-                                            <div key={r.id} className="glass-card p-4 border-l-2 border-blue-500">
-                                                <div className="flex justify-between text-[10px] mb-2">
-                                                    <span className="text-blue-400 font-bold">{r.authorRank} {r.author}</span>
-                                                    <span className="text-gray-600">منذ قليل</span>
+                                        {data.reports.map(r => (
+                                            <div key={r.id} className="glass-panel p-4 text-sm border-l-2 border-blue-500">
+                                                <div className="flex justify-between mb-2 text-[10px]">
+                                                    <span className="text-blue-400 font-bold">{r.author}</span>
+                                                    <span className="text-gray-500">REPORT FILE</span>
                                                 </div>
-                                                <p className="text-sm text-gray-300">{r.content}</p>
+                                                <p className="text-gray-300">{r.content}</p>
                                             </div>
                                         ))}
                                     </div>
@@ -196,77 +189,138 @@
                         )}
 
                         {view === 'staff' && (
-                            <div className="space-y-6 animate-up">
-                                {isAdmin ? (
-                                    <>
-                                        <button onClick={() => setEditingUser({ id: '', name: '', rank: 'Special Agent', password: '' })} className="w-full btn-action py-3 rounded-xl font-bold flex items-center justify-center gap-2">
-                                            <i className="fas fa-plus-circle"></i> إضافة موظف جديد
-                                        </button>
-
-                                        <div className="space-y-3">
-                                            {data.users.map(u => (
-                                                <div key={u.id} className="glass-card p-4 flex items-center justify-between">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-lg bg-blue-600/20 flex items-center justify-center text-blue-500 font-bold">
-                                                            {u.id.slice(-2)}
-                                                        </div>
-                                                        <div>
-                                                            <h4 className="font-bold text-sm">{u.name}</h4>
-                                                            <p className="text-[10px] text-blue-400 font-bold">{u.rank}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex gap-2">
-                                                        <button onClick={() => setEditingUser(u)} className="w-8 h-8 bg-white/5 rounded flex items-center justify-center text-xs"><i className="fas fa-edit"></i></button>
-                                                        <button onClick={() => deleteUser(u.id)} className="w-8 h-8 bg-red-500/10 rounded flex items-center justify-center text-xs text-danger"><i className="fas fa-trash"></i></button>
-                                                    </div>
-                                                </div>
-                                            ))}
+                            <div className="animate-fade-in space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-bold">Personnel Records</h3>
+                                    <button onClick={() => setModal('add_staff')} className="bg-blue-600 px-4 py-2 rounded-lg text-xs font-bold">+ New Agent</button>
+                                </div>
+                                {data.users.map(u => (
+                                    <div key={u.id} className="glass-panel p-4 flex justify-between items-center">
+                                        <div>
+                                            <p className="font-bold text-sm">{u.name}</p>
+                                            <p className="text-[10px] text-yellow-500">{u.rank}</p>
                                         </div>
-                                    </>
-                                ) : (
-                                    <div className="text-center p-10 glass-card">
-                                        <i className="fas fa-lock text-4xl text-red-500 mb-4"></i>
-                                        <p className="text-red-500 font-bold">غير مصرح لك بالدخول</p>
-                                        <p className="text-gray-500 text-xs mt-2">تحتاج رتبة Assistant Director فأعلى</p>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => { setEditTarget(u); setModal('add_staff'); }} className="p-2 text-blue-400"><i className="fas fa-edit"></i></button>
+                                            <button onClick={async () => confirm('Dismiss agent?') && await window.fb.deleteDoc(window.fb.doc(window.fb.db, "users", u.id))} className="p-2 text-red-500"><i className="fas fa-trash"></i></button>
+                                        </div>
                                     </div>
-                                )}
+                                ))}
+                            </div>
+                        )}
+
+                        {view === 'wanted' && (
+                            <div className="animate-fade-in space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-bold text-red-500">Most Wanted List</h3>
+                                    <button onClick={() => setModal('add_wanted')} className="bg-red-600 px-4 py-2 rounded-lg text-xs font-bold">Add Target</button>
+                                </div>
+                                {data.wanted.map(w => (
+                                    <div key={w.id} className="glass-panel p-4 border-r-4 border-red-600">
+                                        <h4 className="font-bold">{w.name}</h4>
+                                        <p className="text-xs text-gray-400 mt-1">{w.charge}</p>
+                                        <div className="mt-3 flex justify-between items-center">
+                                            <span className="text-[9px] bg-red-600/20 text-red-500 px-2 py-1 rounded font-bold uppercase">{w.danger} Level</span>
+                                            <button className="text-[10px] text-blue-400">View Dossier</button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {view === 'civilians' && (
+                            <div className="animate-fade-in space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-bold">National Database</h3>
+                                    <button onClick={() => setModal('add_civil')} className="bg-purple-600 px-4 py-2 rounded-lg text-xs font-bold">+ Register</button>
+                                </div>
+                                <input placeholder="Search ID or Name..." className="input-fbi mb-4" />
+                                <div className="grid grid-cols-2 gap-3">
+                                    {data.civilians.map(c => (
+                                        <div key={c.id} className="glass-panel p-3 text-center">
+                                            <div className="w-12 h-12 bg-gray-800 rounded-full mx-auto mb-2 flex items-center justify-center font-bold text-purple-400">{c.name[0]}</div>
+                                            <p className="text-xs font-bold truncate">{c.name}</p>
+                                            <p className="text-[9px] text-gray-500 mt-1">{c.sonyId}</p>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </main>
 
-                    {/* Editor Modal */}
-                    {editingUser && (
-                        <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-6">
-                            <form onSubmit={saveUser} className="w-full max-w-md glass-card p-6 space-y-4 animate-up border-t-4 border-blue-500">
-                                <h3 className="text-xl font-black text-center mb-4">ملف الموظف</h3>
+                    {/* Navigation */}
+                    <nav className="fixed bottom-0 w-full glass-panel rounded-none border-t border-white/5 p-4 flex justify-around items-center z-50">
+                        <button onClick={() => setView('home')} className={`nav-btn ${view === 'home' ? 'active' : ''}`}>
+                            <i className="fas fa-th-large text-xl"></i>
+                            <span>Home</span>
+                        </button>
+                        <button onClick={() => setView('wanted')} className={`nav-btn ${view === 'wanted' ? 'active' : ''}`}>
+                            <i className="fas fa-bullseye text-xl"></i>
+                            <span>Wanted</span>
+                        </button>
+                        <button onClick={() => setModal('add_report')} className="w-12 h-12 bg-blue-700 rounded-full -mt-10 border-4 border-[#020617] flex items-center justify-center text-white shadow-xl">
+                            <i className="fas fa-plus"></i>
+                        </button>
+                        <button onClick={() => setView('civilians')} className={`nav-btn ${view === 'civilians' ? 'active' : ''}`}>
+                            <i className="fas fa-address-book text-xl"></i>
+                            <span>Civilians</span>
+                        </button>
+                        <button onClick={() => setView('staff')} className={`nav-btn ${view === 'staff' ? 'active' : ''}`}>
+                            <i className="fas fa-user-secret text-xl"></i>
+                            <span>Agents</span>
+                        </button>
+                    </nav>
+
+                    {/* Modals */}
+                    {modal && (
+                        <div className="fixed inset-0 bg-black/90 z-[100] flex items-end sm:items-center justify-center p-4">
+                            <div className="w-full max-w-md glass-panel p-6 animate-fade-in">
+                                <h3 className="text-lg font-bold mb-6 text-center text-yellow-500 uppercase">
+                                    {modal.replace('_', ' ')}
+                                </h3>
                                 
-                                <div>
-                                    <label className="text-[10px] font-bold text-gray-500 mb-2 block">الرقم العسكري (ID)</label>
-                                    <input name="id" defaultValue={editingUser.id} readOnly={editingUser.id !== ''} className="glass-input font-bold text-blue-500" required />
-                                </div>
-
-                                <div>
-                                    <label className="text-[10px] font-bold text-gray-500 mb-2 block">الاسم بالكامل</label>
-                                    <input name="name" defaultValue={editingUser.name} className="glass-input" required />
-                                </div>
-
-                                <div>
-                                    <label className="text-[10px] font-bold text-gray-500 mb-2 block">الرتبة الوظيفية</label>
-                                    <select name="rank" defaultValue={editingUser.rank} className="glass-input bg-[#1a1a1e]">
-                                        {RANKS.map(r => <option key={r} value={r}>{r}</option>)}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="text-[10px] font-bold text-gray-500 mb-2 block">كلمة المرور</label>
-                                    <input name="password" type="text" defaultValue={editingUser.password} className="glass-input" required />
-                                </div>
-
-                                <div className="flex gap-3 pt-4">
-                                    <button type="submit" className="flex-1 btn-action py-3 rounded-xl font-bold">حفظ</button>
-                                    <button type="button" onClick={() => setEditingUser(null)} className="flex-1 bg-white/5 py-3 rounded-xl font-bold">إلغاء</button>
-                                </div>
-                            </form>
+                                <form onSubmit={(e) => handleFormSubmit(e, modal === 'add_staff' ? 'users' : modal === 'add_wanted' ? 'wanted' : modal === 'add_civil' ? 'civilians' : 'field_reports')}>
+                                    <div className="space-y-4">
+                                        {modal === 'add_staff' && (
+                                            <>
+                                                <input name="id" placeholder="Agent ID (Username)" defaultValue={editTarget?.id} className="input-fbi" required />
+                                                <input name="name" placeholder="Full Name" defaultValue={editTarget?.name} className="input-fbi" required />
+                                                <select name="rank" defaultValue={editTarget?.rank || "Special Agent"} className="input-fbi">
+                                                    {RANKS.map(r => <option key={r} value={r}>{r}</option>)}
+                                                </select>
+                                                <input name="password" type="text" placeholder="Access Password" defaultValue={editTarget?.password} className="input-fbi" required />
+                                            </>
+                                        )}
+                                        {modal === 'add_wanted' && (
+                                            <>
+                                                <input name="name" placeholder="Target Name" className="input-fbi" required />
+                                                <input name="charge" placeholder="Primary Charge" className="input-fbi" required />
+                                                <select name="danger" className="input-fbi">
+                                                    <option value="Low">Low Threat</option>
+                                                    <option value="Medium">Medium Threat</option>
+                                                    <option value="Extreme">Extreme Threat (Armed)</option>
+                                                </select>
+                                            </>
+                                        )}
+                                        {modal === 'add_civil' && (
+                                            <>
+                                                <input name="name" placeholder="Citizen Name" className="input-fbi" required />
+                                                <input name="sonyId" placeholder="National ID / Discord" className="input-fbi" required />
+                                                <input name="phone" placeholder="Phone Number" className="input-fbi" />
+                                            </>
+                                        )}
+                                        {modal === 'add_report' && (
+                                            <>
+                                                <textarea name="content" placeholder="Enter operation details..." className="input-fbi h-32" required></textarea>
+                                            </>
+                                        )}
+                                    </div>
+                                    <div className="flex gap-3 mt-6">
+                                        <button type="submit" className="flex-1 bg-blue-700 py-3 rounded-lg font-bold">COMMIT</button>
+                                        <button type="button" onClick={() => {setModal(null); setEditTarget(null);}} className="flex-1 bg-white/5 py-3 rounded-lg font-bold">CANCEL</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     )}
                 </div>
