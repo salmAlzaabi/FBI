@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FBI System - Mobile</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <section id="login-page" class="active">
+        <div class="header-logo">
+            <div class="logo">FBI</div>
+            <p>نظام الإدارة المركزية</p>
+        </div>
+        <div class="login-container">
+            <input type="email" id="email" placeholder="البريد الإلكتروني">
+            <input type="password" id="password" placeholder="كلمة المرور">
+            <button onclick="login()">دخول</button>
+            <p style="font-size: 12px; color: gray; margin-top: 10px;">الحساب التجريبي: admin@fbi.gov | 123456</p>
+        </div>
+    </section>
+
+    <section id="dashboard" class="hidden">
+        <nav class="top-nav">
+            <span>لوحة التحكم</span>
+            <div class="user-info" onclick="toggleLogout()">
+                <span id="user-display-name">المسؤول</span>
+                <div id="logout-menu" class="hidden">تسجيل الخروج</div>
+            </div>
+        </nav>
+
+        <div class="stats-grid">
+            <div class="stat-card"><h3>150</h3><p>السجلات</p></div>
+            <div class="stat-card"><h3>42</h3><p>القضايا</p></div>
+            <div class="stat-card"><h3>12</h3><p>الموظفين</p></div>
+        </div>
+
+        <div class="bottom-bar">
+            <button onclick="showPage('dashboard')">الرئيسية</button>
+            <button id="nav-emp" onclick="showPage('employees')">الموظفين</button>
+            <button onclick="showPage('chat')">الشات</button>
+            <button id="nav-logs" onclick="showPage('logs')">السجلات</button>
+        </div>
+    </section>
+
+    <section id="employees" class="hidden page-content">
+        <h2>إدارة الموظفين</h2>
+        <button class="add-btn" onclick="openModal()">+ إضافة موظف</button>
+        <div id="staff-list">
+            </div>
+    </section>
+
+    <section id="chat" class="hidden page-content">
+        <h2>غرفة العمليات</h2>
+        <div id="chat-box"></div>
+        <div class="chat-input">
+            <input type="text" id="msg-input" placeholder="اكتب رسالة...">
+            <button onclick="sendMsg()">إرسال</button>
+        </div>
+    </section>
+
+    <section id="logs" class="hidden page-content">
+        <h2>سجل النظام (Logs)</h2>
+        <div id="log-list"></div>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+</html>
