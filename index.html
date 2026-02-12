@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FEDERAL BUREAU OF INVESTIGATION | DATABASE SYSTEM</title>
+    <title>FEDERAL BUREAU OF INVESTIGATION - OFFICIAL TERMINAL</title>
     
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -11,19 +11,20 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;700;900&display=swap" rel="stylesheet">
 
     <style>
+        /* CSS Extended Styles */
         :root {
             --fbi-gold: #fbbf24;
             --fbi-blue: #1d4ed8;
-            --danger: #ef4444;
-            --success: #22c55e;
-            --bg-dark: #020617;
+            --fbi-red: #b91c1c;
+            --dark-bg: #020617;
+            --panel-bg: rgba(15, 23, 42, 0.95);
         }
 
         body {
-            background-color: var(--bg-dark);
+            background-color: var(--dark-bg);
             color: #f8fafc;
             font-family: 'Cairo', sans-serif;
             margin: 0;
@@ -32,108 +33,116 @@
             height: 100vh;
         }
 
-        /* FBI Cyber Grid Effect */
-        .fbi-grid {
+        .fbi-grid-overlay {
             position: fixed;
-            inset: 0;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             z-index: -1;
             background-image: 
-                linear-gradient(rgba(29, 78, 216, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(29, 78, 216, 0.05) 1px, transparent 1px);
-            background-size: 30px 30px;
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 25px 25px;
         }
 
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.85);
+        .glass-container {
+            background: var(--panel-bg);
             backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
-        /* Inputs */
-        .input-fbi {
-            background: rgba(0, 0, 0, 0.5);
+        .fbi-input-field {
+            background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
-            padding: 15px;
-            color: white;
+            padding: 14px 18px;
+            color: #ffffff;
             width: 100%;
             outline: none;
-            transition: all 0.3s ease;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .input-fbi:focus {
+        .fbi-input-field:focus {
             border-color: var(--fbi-gold);
-            box-shadow: 0 0 20px rgba(251, 191, 36, 0.15);
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
         }
 
-        /* Buttons */
-        .btn-action {
-            transition: all 0.2s ease;
-            cursor: pointer;
+        .fbi-button-primary {
+            background-color: var(--fbi-blue);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            transition: transform 0.2s, background-color 0.2s;
+            cursor: pointer;
         }
 
-        .btn-action:active {
-            transform: scale(0.95);
+        .fbi-button-primary:active {
+            transform: scale(0.96);
         }
 
-        /* Navigation */
-        .nav-item {
+        .nav-icon-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            color: #64748b;
-            transition: 0.3s;
+            justify-content: center;
+            gap: 6px;
+            transition: color 0.3s ease;
+            cursor: pointer;
         }
 
-        .nav-item.active {
-            color: var(--fbi-gold);
-        }
-
-        /* Case Card */
-        .case-card {
-            border-right: 4px solid var(--fbi-blue);
-            transition: 0.3s;
-        }
-
-        .case-card:hover {
-            background: rgba(30, 41, 59, 0.8);
-        }
-
-        .identity-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: rgba(30, 64, 175, 0.2);
-            color: #93c5fd;
-            padding: 4px 10px;
-            border-radius: 6px;
+        .nav-icon-label {
             font-size: 10px;
-            font-weight: bold;
-            border: 1px solid rgba(30, 64, 175, 0.3);
+            font-weight: 800;
+            letter-spacing: 0.5px;
         }
 
-        .status-badge {
-            padding: 3px 12px;
-            border-radius: 20px;
+        .agent-identity-tag {
+            background: rgba(30, 64, 175, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #93c5fd;
+        }
+
+        .case-status-badge {
             font-size: 9px;
             font-weight: 900;
+            padding: 4px 10px;
+            border-radius: 6px;
             text-transform: uppercase;
         }
 
-        .hide-scroll::-webkit-scrollbar {
+        .wanted-poster-frame {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 4px solid var(--fbi-red);
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
             display: none;
+        }
+
+        /* Animations */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-slide-up {
+            animation: slideUp 0.5s ease-out;
         }
     </style>
 </head>
 <body>
-    <div class="fbi-grid"></div>
+    <div class="fbi-grid-overlay"></div>
     <div id="root"></div>
 
     <script type="module">
@@ -150,412 +159,446 @@
         };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        window.fb = { db, collection, onSnapshot, setDoc, doc, deleteDoc, query, orderBy, addDoc, updateDoc, serverTimestamp };
+        
+        // Export to window for React use
+        window.fbDB = db;
+        window.fbTools = { collection, onSnapshot, setDoc, doc, deleteDoc, query, orderBy, addDoc, updateDoc, serverTimestamp };
     </script>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        const RANKS = [
-            "Director", "Deputy Director", "Associate Deputy Director", 
-            "Executive Assistant Director", "Assistant Director", 
-            "Deputy Assistant Director", "Special Agent in Charge – SAC", 
+        // Configuration Arrays
+        const FBI_RANKS = [
+            "Director", 
+            "Deputy Director", 
+            "Associate Deputy Director", 
+            "Executive Assistant Director", 
+            "Assistant Director", 
+            "Deputy Assistant Director", 
+            "Special Agent in Charge – SAC", 
             "Assistant Special Agent in Charge – ASAC", 
-            "Supervisory Special Agent – SSA", "Senior Special Agent", "Special Agent"
+            "Supervisory Special Agent – SSA", 
+            "Senior Special Agent", 
+            "Special Agent"
         ];
 
         const App = () => {
-            const [user, setUser] = useState(null);
-            const [view, setView] = useState('login'); 
-            const [data, setData] = useState({ users: [], wanted: [], cases: [], civilians: [] });
-            const [modal, setModal] = useState(null);
-            const [editItem, setEditItem] = useState(null);
-            const [search, setSearch] = useState("");
+            // Application State
+            const [currentUser, setCurrentUser] = useState(null);
+            const [activeView, setActiveView] = useState('login');
+            const [allUsers, setAllUsers] = useState([]);
+            const [allWanted, setAllWanted] = useState([]);
+            const [allCases, setAllCases] = useState([]);
+            const [allCivilians, setAllCivilians] = useState([]);
+            const [activeModal, setActiveModal] = useState(null);
+            const [itemToEdit, setItemToEdit] = useState(null);
+            const [searchQuery, setSearchQuery] = useState("");
 
-            // Sync Data from Firebase
+            // Data Synchronization
             useEffect(() => {
-                if (!window.fb) return;
-                const db = window.fb.db;
-                
-                const unsubUsers = window.fb.onSnapshot(window.fb.collection(db, "users"), (s) => {
-                    setData(prev => ({ ...prev, users: s.docs.map(d => ({ ...d.data(), id: d.id })) }));
+                if (!window.fbTools) return;
+
+                const db = window.fbDB;
+                const tools = window.fbTools;
+
+                const unsubUsers = tools.onSnapshot(tools.collection(db, "users"), (snapshot) => {
+                    const usersList = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+                    setAllUsers(usersList);
                 });
 
-                const unsubWanted = window.fb.onSnapshot(window.fb.collection(db, "wanted"), (s) => {
-                    setData(prev => ({ ...prev, wanted: s.docs.map(d => ({ ...d.data(), id: d.id })) }));
+                const unsubWanted = tools.onSnapshot(tools.collection(db, "wanted"), (snapshot) => {
+                    const wantedList = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+                    setAllWanted(wantedList);
                 });
 
-                const unsubCivilians = window.fb.onSnapshot(window.fb.collection(db, "civilians"), (s) => {
-                    setData(prev => ({ ...prev, civilians: s.docs.map(d => ({ ...d.data(), id: d.id })) }));
+                const unsubCivilians = tools.onSnapshot(tools.collection(db, "civilians"), (snapshot) => {
+                    const civList = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+                    setAllCivilians(civList);
                 });
 
-                const unsubCases = window.fb.onSnapshot(
-                    window.fb.query(window.fb.collection(db, "fbi_cases"), window.fb.orderBy("createdAt", "desc")), 
-                    (s) => {
-                        setData(prev => ({ ...prev, cases: s.docs.map(d => ({ ...d.data(), id: d.id })) }));
-                    }
-                );
+                const qCases = tools.query(tools.collection(db, "fbi_cases"), tools.orderBy("createdAt", "desc"));
+                const unsubCases = tools.onSnapshot(qCases, (snapshot) => {
+                    const casesList = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+                    setAllCases(casesList);
+                });
 
-                return () => { unsubUsers(); unsubWanted(); unsubCivilians(); unsubCases(); };
+                return () => {
+                    unsubUsers();
+                    unsubWanted();
+                    unsubCivilians();
+                    unsubCases();
+                };
             }, []);
 
-            const handleLogin = () => {
-                const id = document.getElementById('login_id').value;
-                const pw = document.getElementById('login_pw').value;
+            // Auth Logic
+            const executeLogin = () => {
+                const emailInput = document.getElementById('auth_email').value;
+                const passwordInput = document.getElementById('auth_password').value;
 
-                // Admin Account Bypass
-                if (id === "admin@fbi.gov" && pw === "123456") {
-                    setUser({ name: "المدير العام", rank: "Director", access: "command", id: "admin@fbi.gov" });
-                    setView('home');
+                if (emailInput === "admin@fbi.gov" && passwordInput === "123456") {
+                    const adminSession = { 
+                        name: "System Administrator", 
+                        rank: "Director", 
+                        access: "command", 
+                        id: "admin@fbi.gov" 
+                    };
+                    setCurrentUser(adminSession);
+                    setActiveView('dashboard');
                     return;
                 }
 
-                const found = data.users.find(u => u.id === id && u.password === pw);
-                if (found) {
-                    setUser(found);
-                    setView('home');
+                const matchedUser = allUsers.find(u => u.id === emailInput && u.password === passwordInput);
+                if (matchedUser) {
+                    setCurrentUser(matchedUser);
+                    setActiveView('dashboard');
                 } else {
-                    alert("⚠️ بيانات الدخول غير صحيحة");
+                    alert("ACCESS DENIED: INVALID CREDENTIALS");
                 }
             };
 
-            const isCommand = user && user.access === 'command';
+            const isPrivileged = currentUser && currentUser.access === 'command';
 
-            const handleFormSubmit = async (e) => {
-                e.preventDefault();
-                const formData = new FormData(e.target);
-                const values = Object.fromEntries(formData);
-                const collectionName = modal === 'staff' ? 'users' : 
-                                     modal === 'civilian' ? 'civilians' : 
-                                     modal === 'wanted' ? 'wanted' : 'fbi_cases';
+            // Data Operations
+            const handleFormSubmission = async (event) => {
+                event.preventDefault();
+                const formData = new FormData(event.target);
+                const dataValues = Object.fromEntries(formData);
+                const db = window.fbDB;
+                const tools = window.fbTools;
+
+                let collectionName = "";
+                if (activeModal === 'case_form') collectionName = "fbi_cases";
+                if (activeModal === 'wanted_form') collectionName = "wanted";
+                if (activeModal === 'civilian_form') collectionName = "civilians";
+                if (activeModal === 'staff_form') collectionName = "users";
 
                 try {
-                    // If we are editing (specifically for Cases and Staff)
-                    if (editItem) {
-                        await window.fb.updateDoc(window.fb.doc(window.fb.db, collectionName, editItem.id), {
-                            ...values,
-                            updatedBy: user.name,
-                            updatedAt: window.fb.serverTimestamp()
-                        });
-                    } else {
-                        // Creating new entry
-                        const payload = {
-                            ...values,
-                            author: user.name,
-                            authorRank: user.rank,
-                            createdAt: window.fb.serverTimestamp()
-                        };
-
-                        if (collectionName === 'users') {
-                            await window.fb.setDoc(window.fb.doc(window.fb.db, collectionName, values.id), payload);
-                        } else {
-                            await window.fb.addDoc(window.fb.collection(window.fb.db, collectionName), payload);
+                    // Check for Existing Civilian ID
+                    if (activeModal === 'civilian_form' && !itemToEdit) {
+                        const duplicate = allCivilians.find(c => c.sonyId === dataValues.sonyId);
+                        if (duplicate) {
+                            alert(`خطأ: رقم الهوية (${dataValues.sonyId}) مسجل مسبقاً باسم ${duplicate.name}`);
+                            return;
                         }
                     }
-                    setModal(null);
-                    setEditItem(null);
-                } catch (err) {
-                    alert("خطأ في حفظ البيانات: " + err.message);
+
+                    if (itemToEdit) {
+                        // Update Existing Record
+                        const recordRef = tools.doc(db, collectionName, itemToEdit.id);
+                        await tools.updateDoc(recordRef, {
+                            ...dataValues,
+                            lastModifiedBy: currentUser.name,
+                            lastModifiedRank: currentUser.rank
+                        });
+                    } else {
+                        // Create New Record
+                        const newRecord = {
+                            ...dataValues,
+                            author: currentUser.name,
+                            authorRank: currentUser.rank,
+                            createdAt: tools.serverTimestamp()
+                        };
+
+                        if (collectionName === "users") {
+                            await tools.setDoc(tools.doc(db, collectionName, dataValues.id), newRecord);
+                        } else {
+                            await tools.addDoc(tools.collection(db, collectionName), newRecord);
+                        }
+                    }
+
+                    setActiveModal(null);
+                    setItemToEdit(null);
+                } catch (error) {
+                    console.error("Database Error:", error);
+                    alert("حدث خطأ أثناء معالجة البيانات");
                 }
             };
 
-            const deleteRecord = async (col, id) => {
-                if (confirm("هل أنت متأكد من حذف هذا السجل نهائياً؟")) {
-                    await window.fb.deleteDoc(window.fb.doc(window.fb.db, col, id));
+            const deleteEntry = async (col, id) => {
+                if (window.confirm("هل أنت متأكد من حذف هذا السجل بشكل نهائي؟")) {
+                    await window.fbTools.deleteDoc(window.fbTools.doc(window.fbDB, col, id));
                 }
             };
 
-            if (view === 'login') return (
+            // Views Components
+            const LoginScreen = () => (
                 <div className="h-screen flex items-center justify-center p-6 bg-slate-950">
-                    <div className="w-full max-w-md glass-panel p-10 text-center border-t-4 border-blue-600 shadow-2xl">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Seal_of_the_Federal_Bureau_of_Investigation.svg" className="w-24 h-24 mx-auto mb-6" />
-                        <h1 className="text-2xl font-black tracking-widest mb-2">FBI PORTAL</h1>
-                        <p className="text-gray-500 text-[10px] uppercase mb-10 tracking-[0.3em]">Justice · Integrity · Vigilance</p>
+                    <div className="w-full max-w-md glass-container p-10 text-center animate-slide-up border-t-4 border-blue-600">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Seal_of_the_Federal_Bureau_of_Investigation.svg" className="w-24 h-24 mx-auto mb-8" alt="FBI SEAL" />
+                        <h1 className="text-2xl font-black tracking-widest mb-2">FBI ACCESS TERMINAL</h1>
+                        <p className="text-gray-500 text-[10px] uppercase mb-10 tracking-[4px]">Classified Information System</p>
                         
                         <div className="space-y-4">
-                            <input id="login_id" type="text" placeholder="رقم الملف / البريد" className="input-fbi text-center" />
-                            <input id="login_pw" type="password" placeholder="كلمة المرور" className="input-fbi text-center" />
-                            <button onClick={handleLogin} className="w-full bg-blue-700 hover:bg-blue-600 py-4 rounded-xl font-black transition-all btn-action">دخول النظام</button>
+                            <input id="auth_email" type="text" placeholder="البريد الإلكتروني للعميل" className="fbi-input-field text-center" />
+                            <input id="auth_password" type="password" placeholder="رمز الدخول السري" className="fbi-input-field text-center" />
+                            <button onClick={executeLogin} className="w-full fbi-button-primary mt-4">دخول النظام</button>
                         </div>
                     </div>
                 </div>
             );
 
-            return (
-                <div className="h-screen flex flex-col">
-                    {/* Header */}
-                    <header className="p-5 flex justify-between items-center bg-slate-900/50 border-b border-white/5 shadow-lg">
-                        <div className="flex items-center gap-4">
-                            <div className={`w-3 h-3 rounded-full ${isCommand ? 'bg-yellow-500 shadow-[0_0_10px_#fbbf24]' : 'bg-green-500 shadow-[0_0_10px_#22c55e]'}`}></div>
-                            <div>
-                                <h2 className="text-sm font-black leading-none">{user.name}</h2>
-                                <p className="text-[10px] text-yellow-500 font-bold mt-1 uppercase tracking-tighter">{user.rank}</p>
-                            </div>
+            // Sub-views
+            const DashboardView = () => (
+                <div className="animate-slide-up space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="glass-container p-6 border-r-4 border-blue-600">
+                            <h5 className="text-[10px] font-black text-gray-500 uppercase">قضايا نشطة</h5>
+                            <p className="text-3xl font-black mt-1">{allCases.length}</p>
                         </div>
-                        <button onClick={() => setView('login')} className="text-[10px] font-black text-red-500 border border-red-500/20 px-3 py-1 rounded-md hover:bg-red-500/10">تسجيل خروج</button>
-                    </header>
+                        <div className="glass-container p-6 border-r-4 border-red-600">
+                            <h5 className="text-[10px] font-black text-gray-500 uppercase">مطلوبين خطرين</h5>
+                            <p className="text-3xl font-black mt-1">{allWanted.length}</p>
+                        </div>
+                    </div>
 
-                    {/* Main Content */}
-                    <main className="flex-1 overflow-y-auto p-4 pb-32 hide-scroll">
-                        
-                        {/* 1. Dashboard / Cases View */}
-                        {view === 'home' && (
-                            <div className="space-y-6">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="glass-panel p-5 border-r-4 border-blue-600">
-                                        <h4 className="text-[10px] text-gray-500 font-black uppercase mb-1">Total Cases</h4>
-                                        <p className="text-3xl font-black">{data.cases.length}</p>
-                                    </div>
-                                    <div className="glass-panel p-5 border-r-4 border-red-600">
-                                        <h4 className="text-[10px] text-gray-500 font-black uppercase mb-1">Active Wanted</h4>
-                                        <p className="text-3xl font-black">{data.wanted.length}</p>
-                                    </div>
-                                </div>
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center px-1">
+                            <h2 className="text-lg font-black uppercase tracking-tighter">سجل القضايا المركزية</h2>
+                            <button onClick={() => setActiveModal('case_form')} className="bg-blue-600 px-4 py-2 rounded-lg text-[10px] font-black">+ فتح قضية</button>
+                        </div>
 
-                                <div className="space-y-4">
-                                    <div className="flex justify-between items-center px-1">
-                                        <h3 className="font-black text-sm uppercase">قاعدة بيانات القضايا</h3>
-                                        <button onClick={() => setModal('case')} className="bg-blue-600 text-[10px] font-black px-4 py-2 rounded-lg">+ فتح قضية</button>
-                                    </div>
-
-                                    {data.cases.map(c => (
-                                        <div key={c.id} className="glass-panel p-6 case-card">
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div>
-                                                    <h4 className="text-lg font-black text-white">{c.title}</h4>
-                                                    <div className="identity-badge mt-2">
-                                                        <i className="fas fa-user-secret"></i> المحقق: {c.authorRank} {c.author}
-                                                    </div>
-                                                </div>
-                                                <div className="text-left flex flex-col items-end gap-2">
-                                                    <span className={`status-badge ${c.status === 'Open' ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}`}>
-                                                        {c.status === 'Open' ? 'تحقيق جاري' : 'قضية مغلقة'}
-                                                    </span>
-                                                    <button onClick={() => { setEditItem(c); setModal('case'); }} className="text-[10px] text-blue-400 font-bold underline">تعديل الحالة</button>
-                                                </div>
-                                            </div>
-                                            <p className="text-xs text-gray-400 leading-relaxed mb-4">{c.details}</p>
-                                            <div className="grid grid-cols-1 gap-2 text-[10px] text-gray-500 border-t border-white/5 pt-4">
-                                                <p><span className="text-blue-500 font-bold">المتورطين:</span> {c.suspects}</p>
-                                                {c.evidence && <p><span className="text-blue-500 font-bold">الأدلة:</span> <a href={c.evidence} target="_blank" className="underline italic">عرض المرفقات</a></p>}
-                                            </div>
-                                            {isCommand && (
-                                                <button onClick={() => deleteRecord('fbi_cases', c.id)} className="mt-4 text-red-900 text-xs hover:text-red-500 transition"><i className="fas fa-trash"></i> حذف القضية</button>
-                                            )}
+                        {allCases.map(c => (
+                            <div key={c.id} className="glass-container p-6 border-l-4 border-blue-500 hover:bg-slate-800/50 transition">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div>
+                                        <h3 className="text-lg font-black">{c.title}</h3>
+                                        <div className="flex gap-2 mt-2">
+                                            <span className="agent-identity-tag">المحقق: {c.author}</span>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 2. Wanted View */}
-                        {view === 'wanted' && (
-                            <div className="space-y-6">
-                                <div className="flex justify-between items-center">
-                                    <h3 className="font-black text-red-500 text-sm uppercase">قائمة المطلوبين فيدرالياً</h3>
-                                    <button onClick={() => setModal('wanted')} className="bg-red-600 text-[10px] font-black px-4 py-2 rounded-lg">إضافة هدف</button>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {data.wanted.map(w => (
-                                        <div key={w.id} className="glass-panel overflow-hidden border-b-4 border-red-600">
-                                            <img src={w.image} className="w-full h-48 object-cover border-b border-red-600/30" alt="Fugitive" />
-                                            <div className="p-5">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <h4 className="text-xl font-black">{w.name}</h4>
-                                                    <span className="text-[9px] bg-red-600/20 text-red-500 px-2 py-1 rounded font-black">{w.danger}</span>
-                                                </div>
-                                                <p className="text-xs text-gray-400 mb-4">{w.charge}</p>
-                                                <div className="flex justify-between items-center border-t border-white/5 pt-3">
-                                                    <div className="identity-badge">بواسطة: {w.author}</div>
-                                                    {isCommand && (
-                                                        <button onClick={() => deleteRecord('wanted', w.id)} className="text-red-900 hover:text-red-500"><i className="fas fa-trash"></i></button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 3. Civilians View */}
-                        {view === 'civilians' && (
-                            <div className="space-y-6">
-                                <div className="space-y-4">
-                                    <h3 className="font-black text-sm uppercase">السجل المدني الوطني</h3>
-                                    <div className="relative">
-                                        <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
-                                        <input 
-                                            placeholder="ابحث بالاسم أو رقم الهوية..." 
-                                            className="input-fbi pr-12"
-                                            onChange={(e) => setSearch(e.target.value)} 
-                                        />
+                                    </div>
+                                    <div className="flex flex-col items-end gap-2">
+                                        <span className={`case-status-badge ${c.status === 'Open' ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}`}>
+                                            {c.status === 'Open' ? 'قيد التحقيق' : 'قضية مغلقة'}
+                                        </span>
+                                        <button onClick={() => { setItemToEdit(c); setActiveModal('case_form'); }} className="text-[10px] text-blue-400 font-bold underline">تغيير الحالة</button>
                                     </div>
                                 </div>
-                                <div className="space-y-3">
-                                    {data.civilians.filter(c => c.name.includes(search) || c.sonyId.includes(search)).map(c => (
-                                        <div key={c.id} className="glass-panel p-5 flex justify-between items-center border-l-4 border-blue-600">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-blue-900/30 rounded-full flex items-center justify-center text-blue-500 font-black">{c.name[0]}</div>
-                                                <div>
-                                                    <h4 className="font-black text-sm">{c.name}</h4>
-                                                    <p className="text-[10px] text-gray-500">هوية: {c.sonyId} | سجل بواسطة: {c.author}</p>
-                                                </div>
-                                            </div>
-                                            <button className="text-[10px] font-black text-blue-400 bg-blue-400/10 px-3 py-1.5 rounded-md">عرض الملف</button>
-                                        </div>
-                                    ))}
+                                <p className="text-xs text-gray-400 leading-relaxed mb-4">{c.details}</p>
+                                <div className="text-[10px] bg-black/40 p-3 rounded-lg border border-white/5">
+                                    <span className="text-blue-400 font-bold">المشتبه بهم:</span> {c.suspects}
                                 </div>
-                                <button onClick={() => setModal('civilian')} className="w-full bg-blue-700 py-4 rounded-xl font-black text-xs">+ تسجيل مواطن جديد</button>
-                            </div>
-                        )}
-
-                        {/* 4. Staff Management View */}
-                        {view === 'staff' && (
-                            <div className="space-y-6">
-                                {isCommand ? (
-                                    <>
-                                        <div className="space-y-4">
-                                            <h3 className="font-black text-yellow-500 text-sm uppercase">إدارة الكادر الفيدرالي</h3>
-                                            <input placeholder="ابحث عن موظف..." className="input-fbi" onChange={(e)=>setSearch(e.target.value)} />
-                                        </div>
-                                        <div className="space-y-3">
-                                            {data.users.filter(u => u.name.includes(search)).map(u => (
-                                                <div key={u.id} className="glass-panel p-5 flex justify-between items-center border-l-4 border-yellow-500">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center text-yellow-500 border border-yellow-500/20">
-                                                            <i className={u.access === 'command' ? 'fas fa-id-badge' : 'fas fa-user-shield'}></i>
-                                                        </div>
-                                                        <div>
-                                                            <h4 className="font-black text-sm">{u.name}</h4>
-                                                            <p className="text-[10px] text-gray-500 uppercase">{u.rank}</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex gap-2">
-                                                        <button onClick={() => { setEditItem(u); setModal('staff'); }} className="p-2 text-blue-500"><i className="fas fa-edit"></i></button>
-                                                        {u.id !== "admin@fbi.gov" && (
-                                                            <button onClick={() => deleteRecord('users', u.id)} className="p-2 text-red-500 opacity-30"><i className="fas fa-user-slash"></i></button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <button onClick={() => setModal('staff')} className="w-full bg-yellow-500 text-black py-4 rounded-xl font-black text-xs uppercase">توظيف عميل جديد</button>
-                                    </>
-                                ) : (
-                                    <div className="text-center p-20 glass-panel">
-                                        <i className="fas fa-lock text-5xl text-red-600 mb-6"></i>
-                                        <h3 className="text-lg font-black uppercase">دخول غير مصرح</h3>
-                                        <p className="text-xs text-gray-500 mt-2">تحتاج إلى رتبة قيادية للوصول لهذه السجلات</p>
-                                    </div>
+                                {isPrivileged && (
+                                    <button onClick={() => deleteEntry('fbi_cases', c.id)} className="mt-4 text-[10px] text-red-500/50 hover:text-red-500"><i className="fas fa-trash-alt mr-1"></i> حذف من الأرشيف</button>
                                 )}
                             </div>
-                        )}
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const WantedView = () => (
+                <div className="animate-slide-up space-y-6">
+                    <div className="flex justify-between items-center px-1">
+                        <h2 className="text-lg font-black text-red-600 uppercase">الأهداف المطلوبة</h2>
+                        <button onClick={() => setActiveModal('wanted_form')} className="bg-red-600 px-4 py-2 rounded-lg text-[10px] font-black">إضافة مطلوب</button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {allWanted.map(w => (
+                            <div key={w.id} className="glass-container overflow-hidden border-b-4 border-red-600">
+                                <img src={w.image} className="wanted-poster-frame" alt="Wanted" />
+                                <div className="p-5">
+                                    <h3 className="text-xl font-black">{w.name}</h3>
+                                    <p className="text-xs text-red-400 font-bold mt-1 tracking-wider uppercase">{w.charge}</p>
+                                    <div className="flex justify-between items-center mt-5 pt-3 border-t border-white/5">
+                                        <span className="agent-identity-tag text-[9px]">أضيف بواسطة: {w.author}</span>
+                                        {isPrivileged && <button onClick={() => deleteEntry('wanted', w.id)} className="text-red-600 opacity-50"><i className="fas fa-trash-alt"></i></button>}
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const CivilianView = () => (
+                <div className="animate-slide-up space-y-6">
+                    <div className="flex justify-between items-center px-1">
+                        <h2 className="text-lg font-black uppercase">قاعدة بيانات المواطنين</h2>
+                        <button onClick={() => setActiveModal('civilian_form')} className="bg-blue-600 px-4 py-2 rounded-lg text-[10px] font-black">+ تسجيل مواطن</button>
+                    </div>
+                    <div className="relative">
+                        <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                        <input 
+                            placeholder="بحث بالاسم أو رقم الهوية..." 
+                            className="fbi-input-field pl-12"
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                    <div className="space-y-3">
+                        {allCivilians.filter(c => c.name.includes(searchQuery) || c.sonyId.includes(searchQuery)).map(c => (
+                            <div key={c.id} className="glass-container p-5 border-r-4 border-blue-500">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center text-blue-500 font-black">{c.name[0]}</div>
+                                        <div>
+                                            <h4 className="font-bold text-sm">{c.name}</h4>
+                                            <p className="text-[10px] text-gray-500 uppercase">رقم الهوية: {c.sonyId}</p>
+                                        </div>
+                                    </div>
+                                    {isPrivileged && (
+                                        <div className="flex gap-2">
+                                            <button onClick={() => { setItemToEdit(c); setActiveModal('civilian_form'); }} className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition"><i className="fas fa-edit"></i></button>
+                                            <button onClick={() => deleteEntry('civilians', c.id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition"><i className="fas fa-trash-alt"></i></button>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="mt-4 flex gap-2">
+                                    <button onClick={() => { setItemToEdit({ suspects: c.name }); setActiveModal('case_form'); }} className="flex-1 bg-red-900/20 text-red-500 border border-red-500/20 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-900/40">إصدار مذكرة جنائية</button>
+                                </div>
+                                <div className="mt-3 text-[8px] text-gray-600 text-left">تسجيل المحقق: {c.author}</div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const StaffView = () => (
+                <div className="animate-slide-up space-y-6">
+                    <h2 className="text-lg font-black text-yellow-500 uppercase px-1">إدارة الكادر الفيدرالي</h2>
+                    {isPrivileged ? (
+                        <>
+                            <div className="space-y-3">
+                                {allUsers.map(u => (
+                                    <div key={u.id} className="glass-container p-5 flex justify-between items-center border-l-4 border-yellow-500">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 bg-slate-900 border border-yellow-500/20 rounded-lg flex items-center justify-center text-yellow-500">
+                                                <i className={u.access === 'command' ? 'fas fa-shield-halved' : 'fas fa-user-shield'}></i>
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-sm">{u.name}</h4>
+                                                <p className="text-[10px] text-gray-500 uppercase font-black tracking-wider">{u.rank}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <button onClick={() => { setItemToEdit(u); setActiveModal('staff_form'); }} className="text-blue-500"><i className="fas fa-user-pen"></i></button>
+                                            {u.id !== "admin@fbi.gov" && <button onClick={() => deleteEntry('users', u.id)} className="text-red-900"><i className="fas fa-user-slash"></i></button>}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <button onClick={() => setActiveModal('staff_form')} className="w-full bg-yellow-600 py-4 rounded-xl font-black text-xs uppercase tracking-widest text-black">تعيين عميل جديد</button>
+                        </>
+                    ) : (
+                        <div className="text-center p-20 glass-container">
+                            <i className="fas fa-lock text-4xl text-red-600 mb-4"></i>
+                            <h3 className="font-black">غير مصرح لك بالدخول</h3>
+                            <p className="text-xs text-gray-500 mt-2 uppercase tracking-widest">Command Access Required</p>
+                        </div>
+                    )}
+                </div>
+            );
+
+            if (activeView === 'login') return <LoginScreen />;
+
+            return (
+                <div className="h-screen flex flex-col">
+                    {/* Official FBI Header */}
+                    <header className="p-5 flex justify-between items-center bg-slate-900/60 border-b border-white/5 shadow-2xl">
+                        <div className="flex items-center gap-4">
+                            <div className={`w-3 h-3 rounded-full ${isPrivileged ? 'bg-yellow-500 shadow-[0_0_10px_#fbbf24]' : 'bg-green-500 shadow-[0_0_10px_#22c55e]'}`}></div>
+                            <div>
+                                <h2 className="text-sm font-black tracking-tight">{currentUser.name}</h2>
+                                <p className="text-[10px] text-yellow-500 font-black mt-0.5 uppercase tracking-wider">{currentUser.rank}</p>
+                            </div>
+                        </div>
+                        <button onClick={() => setActiveView('login')} className="bg-red-600/10 text-red-500 px-4 py-1.5 rounded-lg text-[9px] font-black uppercase border border-red-500/20">Sign Out</button>
+                    </header>
+
+                    {/* Content Section */}
+                    <main className="flex-1 overflow-y-auto p-4 pb-32 hide-scrollbar">
+                        {activeView === 'dashboard' && <DashboardView />}
+                        {activeView === 'wanted' && <WantedView />}
+                        {activeView === 'civilians' && <CivilianView />}
+                        {activeView === 'staff' && <StaffView />}
                     </main>
 
-                    {/* Navigation Bar */}
-                    <nav className="fixed bottom-0 w-full glass-panel rounded-none border-t border-white/10 p-5 flex justify-around items-center z-[100] shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
-                        <button onClick={() => setView('home')} className={`nav-item ${view === 'home' ? 'active' : ''}`}>
-                            <i className="fas fa-folder-tree text-2xl"></i>
-                            <span>القضايا</span>
-                        </button>
-                        <button onClick={() => setView('wanted')} className={`nav-item ${view === 'wanted' ? 'active' : ''}`}>
-                            <i className="fas fa-user-ninja text-2xl"></i>
-                            <span>المطلوبين</span>
-                        </button>
+                    {/* Bottom Navigation Terminal */}
+                    <nav className="fixed bottom-0 w-full glass-container rounded-none border-t border-white/10 p-6 flex justify-around items-center z-[100]">
+                        <div onClick={() => setActiveView('dashboard')} className={`nav-icon-container ${activeView === 'dashboard' ? 'text-blue-500' : 'text-slate-500'}`}>
+                            <i className="fas fa-shield-heart text-2xl"></i>
+                            <span className="nav-icon-label uppercase">الأرشيف</span>
+                        </div>
+                        <div onClick={() => setActiveView('wanted')} className={`nav-icon-container ${activeView === 'wanted' ? 'text-red-600' : 'text-slate-500'}`}>
+                            <i className="fas fa-id-card-clip text-2xl"></i>
+                            <span className="nav-icon-label uppercase">المطلوبين</span>
+                        </div>
                         
-                        <div className="w-16"></div> {/* Spacer for Float Button */}
-                        
-                        <button onClick={() => setView('civilians')} className={`nav-item ${view === 'civilians' ? 'active' : ''}`}>
-                            <i className="fas fa-fingerprint text-2xl"></i>
-                            <span>المدنيين</span>
-                        </button>
-                        <button onClick={() => setView('staff')} className={`nav-item ${view === 'staff' ? 'active' : ''}`}>
-                            <i className="fas fa-users-gear text-2xl"></i>
-                            <span>الموظفين</span>
-                        </button>
+                        <div className="w-20"></div>
 
-                        {/* Floating Action Button */}
-                        <button onClick={() => setModal('case')} className="absolute left-1/2 -translate-x-1/2 -top-8 w-16 h-16 bg-blue-700 rounded-full border-4 border-[#020617] shadow-[0_0_20px_rgba(29,78,216,0.5)] text-white text-2xl flex items-center justify-center transition hover:bg-blue-600 active:scale-90">
+                        <div onClick={() => setActiveView('civilians')} className={`nav-icon-container ${activeView === 'civilians' ? 'text-blue-400' : 'text-slate-500'}`}>
+                            <i className="fas fa-fingerprint text-2xl"></i>
+                            <span className="nav-icon-label uppercase">المدنيين</span>
+                        </div>
+                        <div onClick={() => setActiveView('staff')} className={`nav-icon-container ${activeView === 'staff' ? 'text-yellow-500' : 'text-slate-500'}`}>
+                            <i className="fas fa-user-gear text-2xl"></i>
+                            <span className="nav-icon-label uppercase">الكادر</span>
+                        </div>
+
+                        {/* Centered Action Button */}
+                        <div onClick={() => setActiveModal('case_form')} className="absolute left-1/2 -translate-x-1/2 -top-10 w-20 h-20 bg-blue-700 rounded-full border-[6px] border-[#020617] flex items-center justify-center text-white text-3xl shadow-[0_0_30px_rgba(29,78,216,0.4)] cursor-pointer hover:bg-blue-600 transition-all active:scale-90">
                             <i className="fas fa-plus"></i>
-                        </button>
+                        </div>
                     </nav>
 
-                    {/* Modals Layer */}
-                    {modal && (
-                        <div className="fixed inset-0 bg-black/95 z-[200] flex items-center justify-center p-6 backdrop-blur-md">
-                            <div className="w-full max-w-lg glass-panel p-8 border-t-4 border-blue-600 animate-in overflow-y-auto max-h-[90vh] hide-scroll">
-                                <h3 className="text-center font-black mb-8 uppercase text-blue-500 tracking-widest">
-                                    {editItem ? 'تحديث السجل' : `إضافة ${modal}`}
+                    {/* System Modals - Fully Expanded */}
+                    {activeModal && (
+                        <div className="fixed inset-0 bg-black/90 z-[300] flex items-center justify-center p-6 backdrop-blur-xl">
+                            <div className="w-full max-w-lg glass-container p-8 animate-slide-up border-t-4 border-blue-600 overflow-y-auto max-h-[90vh] hide-scrollbar">
+                                <h3 className="text-xl font-black text-center mb-8 uppercase tracking-widest text-blue-500">
+                                    {itemToEdit ? 'تعديل البيانات' : 'إضافة سجل جديد'}
                                 </h3>
-
-                                <form onSubmit={handleFormSubmit} className="space-y-4 text-right" dir="rtl">
-                                    {modal === 'case' && (
-                                        <>
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-bold text-gray-500 uppercase mr-2">عنوان القضية</label>
-                                                <input name="title" defaultValue={editItem?.title} placeholder="مثال: سرقة بنك لوس سانتوس" className="input-fbi" required />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-bold text-gray-500 uppercase mr-2">تفاصيل القضية الكاملة</label>
-                                                <textarea name="details" defaultValue={editItem?.details} placeholder="اكتب كل ما حدث بالتفصيل..." className="input-fbi h-40" required></textarea>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-bold text-gray-500 uppercase mr-2">أسماء المتورطين</label>
-                                                <input name="suspects" defaultValue={editItem?.suspects} placeholder="افصل بين الأسماء بفاصلة" className="input-fbi" required />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-bold text-gray-500 uppercase mr-2">رابط صورة الأدلة (اختياري)</label>
-                                                <input name="evidence" defaultValue={editItem?.evidence} placeholder="https://..." className="input-fbi" />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-bold text-gray-500 uppercase mr-2">حالة القضية</label>
-                                                <select name="status" defaultValue={editItem?.status || 'Open'} className="input-fbi">
-                                                    <option value="Open" className="bg-slate-900">تحقيق جاري (Open)</option>
-                                                    <option value="Closed" className="bg-slate-900">قضية مغلقة (Closed)</option>
-                                                </select>
-                                            </div>
-                                        </>
-                                    )}
-
-                                    {modal === 'wanted' && (
-                                        <>
-                                            <input name="name" placeholder="اسم المطلوب الثلاثي" className="input-fbi" required />
-                                            <input name="charge" placeholder="التهمة الرئيسية (مثال: قتل عمد)" className="input-fbi" required />
-                                            <input name="image" placeholder="رابط صورة المطلوب" className="input-fbi" required />
-                                            <select name="danger" className="input-fbi">
-                                                <option value="EXTREME" className="bg-slate-900 text-red-500">خطر جداً (Extreme)</option>
-                                                <option value="MEDIUM" className="bg-slate-900 text-yellow-500">متوسط الخطورة (Medium)</option>
-                                                <option value="LOW" className="bg-slate-900 text-green-500">مطلوب للاستجواب (Low)</option>
+                                
+                                <form onSubmit={handleFormSubmission} className="space-y-5">
+                                    {activeModal === 'case_form' && (
+                                        <div className="space-y-4">
+                                            <input name="title" placeholder="عنوان القضية" defaultValue={itemToEdit?.title} className="fbi-input-field" required />
+                                            <textarea name="details" placeholder="تقرير مفصل عن الحادثة..." defaultValue={itemToEdit?.details} className="fbi-input-field h-32" required></textarea>
+                                            <input name="suspects" placeholder="المتهمين المتورطين" defaultValue={itemToEdit?.suspects} className="fbi-input-field" required />
+                                            <select name="status" defaultValue={itemToEdit?.status || 'Open'} className="fbi-input-field">
+                                                <option value="Open" className="bg-slate-900">قيد التحقيق (Open)</option>
+                                                <option value="Closed" className="bg-slate-900">مغلقة (Closed)</option>
                                             </select>
-                                        </>
+                                        </div>
                                     )}
 
-                                    {modal === 'staff' && (
-                                        <>
-                                            <input name="id" placeholder="رقم الملف / البريد الإلكتروني" defaultValue={editItem?.id} className="input-fbi" required />
-                                            <input name="name" placeholder="اسم العميل الكامل" defaultValue={editItem?.name} className="input-fbi" required />
-                                            <select name="rank" defaultValue={editItem?.rank || 'Special Agent'} className="input-fbi">
-                                                {RANKS.map(r => <option key={r} value={r} className="bg-slate-900">{r}</option>)}
+                                    {activeModal === 'wanted_form' && (
+                                        <div className="space-y-4">
+                                            <input name="name" placeholder="الاسم الكامل للمطلوب" className="fbi-input-field" required />
+                                            <input name="charge" placeholder="التهمة الرئيسية" className="fbi-input-field" required />
+                                            <input name="image" placeholder="رابط صورة المطلوب المباشر" className="fbi-input-field" required />
+                                            <select name="dangerLevel" className="fbi-input-field">
+                                                <option value="Extremely Dangerous" className="bg-slate-900">خطر للغاية</option>
+                                                <option value="Moderate" className="bg-slate-900">متوسط الخطورة</option>
                                             </select>
-                                            <select name="access" defaultValue={editItem?.access || 'field'} className="input-fbi">
-                                                <option value="field" className="bg-slate-900">صلاحية ميدانية (Field)</option>
-                                                <option value="command" className="bg-slate-900 text-yellow-500">صلاحية قيادية (Command)</option>
+                                        </div>
+                                    )}
+
+                                    {activeModal === 'civilian_form' && (
+                                        <div className="space-y-4">
+                                            <input name="name" placeholder="اسم المواطن" defaultValue={itemToEdit?.name} className="fbi-input-field" required />
+                                            <input name="sonyId" placeholder="رقم الهوية الوطنية" defaultValue={itemToEdit?.sonyId} className="fbi-input-field" required disabled={!!itemToEdit} />
+                                        </div>
+                                    )}
+
+                                    {activeModal === 'staff_form' && (
+                                        <div className="space-y-4">
+                                            <input name="id" placeholder="البريد الوظيفي" defaultValue={itemToEdit?.id} className="fbi-input-field" required />
+                                            <input name="name" placeholder="الاسم الكامل للعميل" defaultValue={itemToEdit?.name} className="fbi-input-field" required />
+                                            <select name="rank" defaultValue={itemToEdit?.rank || 'Special Agent'} className="fbi-input-field">
+                                                {FBI_RANKS.map(rank => <option key={rank} value={rank} className="bg-slate-900">{rank}</option>)}
                                             </select>
-                                            <input name="password" type="text" placeholder="تعيين كلمة المرور" defaultValue={editItem?.password} className="input-fbi" required />
-                                        </>
+                                            <select name="access" defaultValue={itemToEdit?.access || 'field'} className="fbi-input-field">
+                                                <option value="field" className="bg-slate-900">صلاحية ميدانية</option>
+                                                <option value="command" className="bg-slate-900">صلاحية قيادية</option>
+                                            </select>
+                                            <input name="password" placeholder="كلمة المرور" defaultValue={itemToEdit?.password} className="fbi-input-field" required />
+                                        </div>
                                     )}
 
-                                    {modal === 'civilian' && (
-                                        <>
-                                            <input name="name" placeholder="الاسم الكامل للمواطن" className="input-fbi" required />
-                                            <input name="sonyId" placeholder="رقم الهوية الوطنية / الـ ID" className="input-fbi" required />
-                                        </>
-                                    )}
-
-                                    <div className="flex gap-4 pt-6">
-                                        <button type="submit" className="flex-1 bg-blue-700 py-4 rounded-xl font-black uppercase text-xs">تأكيد البيانات</button>
-                                        <button type="button" onClick={() => { setModal(null); setEditItem(null); }} className="flex-1 bg-white/5 py-4 rounded-xl font-black uppercase text-xs">إلغاء</button>
+                                    <div className="flex gap-4 pt-4">
+                                        <button type="submit" className="flex-1 fbi-button-primary bg-blue-700">حفظ السجل</button>
+                                        <button type="button" onClick={() => { setActiveModal(null); setItemToEdit(null); }} className="flex-1 fbi-button-primary bg-slate-800">إلغاء</button>
                                     </div>
                                 </form>
                             </div>
