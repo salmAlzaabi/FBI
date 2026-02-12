@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FBI | CENTRAL INTELLIGENCE SYSTEM</title>
+    <title>FBI | FULL DATABASE SYSTEM</title>
     
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -14,26 +14,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
 
     <style>
-        :root { --fbi-blue: #1e3a8a; --fbi-gold: #fbbf24; --danger: #ef4444; --bg: #020617; }
+        :root { --fbi-blue: #1e3a8a; --fbi-gold: #fbbf24; --bg: #020617; }
         body { background-color: var(--bg); color: #f8fafc; font-family: 'Cairo', sans-serif; overflow: hidden; height: 100vh; }
         
-        .fbi-grid {
-            position: fixed; inset: 0; z-index: -1;
-            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
-            background-size: 24px 24px;
-        }
+        /* تجميل الخلفية */
+        .fbi-grid { position: fixed; inset: 0; z-index: -1; background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0); background-size: 24px 24px; }
+        .glass-panel { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; }
+        
+        /* المدخلات - تقبل نصوص */
+        .input-fbi { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 14px; color: white; width: 100%; outline: none; transition: 0.3s; }
+        .input-fbi:focus { border-color: var(--fbi-gold); box-shadow: 0 0 15px rgba(251, 191, 36, 0.2); }
 
-        .glass-panel { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; }
-        .input-fbi { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; color: white; width: 100%; transition: 0.3s; }
-        .input-fbi:focus { border-color: var(--fbi-gold); outline: none; box-shadow: 0 0 10px rgba(251, 191, 36, 0.2); }
+        .btn-gold { background: linear-gradient(135deg, #fbbf24, #d97706); color: #000; font-weight: 900; }
+        .btn-blue { background: linear-gradient(135deg, #1e40af, #1e3a8a); color: #fff; font-weight: 900; }
 
-        .nav-btn { color: #64748b; transition: 0.3s; display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; gap: 4px; }
+        .nav-btn { color: #64748b; transition: 0.3s; flex: 1; display: flex; flex-direction: column; align-items: center; font-size: 0.65rem; font-weight: bold; }
         .nav-btn.active { color: var(--fbi-gold); }
 
-        .animate-fade-in { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
         .hide-scroll::-webkit-scrollbar { display: none; }
+        .animate-slide { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -73,8 +73,9 @@
             const [view, setView] = useState('login'); 
             const [data, setData] = useState({ users: [], wanted: [], reports: [], civilians: [] });
             const [modal, setModal] = useState(null);
-            const [editTarget, setEditTarget] = useState(null);
+            const [editItem, setEditItem] = useState(null);
 
+            // جلب كافة البيانات من فيربيس
             useEffect(() => {
                 if (!window.fb) return;
                 const db = window.fb.db;
@@ -88,43 +89,39 @@
             }, []);
 
             const handleLogin = () => {
-                const id = document.getElementById('login_id').value;
-                const pw = document.getElementById('login_pw').value;
+                const id = document.getElementById('l_id').value;
+                const pw = document.getElementById('l_pw').value;
                 const found = data.users.find(u => u.id === id && u.password === pw);
                 if (found) { setUser(found); setView('home'); }
-                else alert("Access Denied: Invalid Credentials");
+                else alert("خطأ في بيانات الدخول");
             };
 
-            const isAdmin = user && RANKS.slice(0, 5).includes(user.rank);
+            const isCommand = user && user.access === 'command';
 
-            // إضافة وتعديل شامل
-            const handleFormSubmit = async (e, collectionName) => {
+            const submitForm = async (e, col) => {
                 e.preventDefault();
-                const formData = new FormData(e.target);
-                const values = Object.fromEntries(formData);
-                const db = window.fb.db;
-
+                const fd = new FormData(e.target);
+                const val = Object.fromEntries(fd);
                 try {
-                    if (collectionName === 'users') {
-                        await window.fb.setDoc(window.fb.doc(db, "users", values.id), { ...values, createdAt: window.fb.serverTimestamp() }, { merge: true });
+                    if (col === 'users') {
+                        await window.fb.setDoc(window.fb.doc(window.fb.db, "users", val.id), { ...val, updatedAt: window.fb.serverTimestamp() }, { merge: true });
                     } else {
-                        await window.fb.addDoc(window.fb.collection(db, collectionName), { ...values, author: user.name, createdAt: window.fb.serverTimestamp() });
+                        await window.fb.addDoc(window.fb.collection(window.fb.db, col), { ...val, author: user.name, authorRank: user.rank, createdAt: window.fb.serverTimestamp() });
                     }
-                    setModal(null);
-                    setEditTarget(null);
-                } catch (err) { alert("Error: " + err.message); }
+                    setModal(null); setEditItem(null);
+                } catch (err) { alert("حدث خطأ"); }
             };
 
             if (view === 'login') return (
                 <div className="h-screen flex items-center justify-center p-6">
-                    <div className="w-full max-w-sm glass-panel p-8 text-center animate-fade-in border-t-4 border-yellow-500">
+                    <div className="w-full max-w-sm glass-panel p-8 text-center animate-slide border-t-4 border-blue-700">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Seal_of_the_Federal_Bureau_of_Investigation.svg" className="w-24 h-24 mx-auto mb-6" />
-                        <h1 className="text-2xl font-black mb-2 tracking-widest">FBI TERMINAL</h1>
-                        <p className="text-gray-500 text-[10px] mb-8">DEPARTMENT OF JUSTICE</p>
+                        <h1 className="text-2xl font-black mb-1 tracking-tighter">FBI TERMINAL</h1>
+                        <p className="text-gray-500 text-[10px] mb-8 uppercase tracking-widest">Department of Justice</p>
                         <div className="space-y-4">
-                            <input id="login_id" type="text" placeholder="AGENT ID" className="input-fbi text-center font-bold" />
-                            <input id="login_pw" type="password" placeholder="PASSWORD" className="input-fbi text-center" />
-                            <button onClick={handleLogin} className="w-full bg-blue-700 hover:bg-blue-600 py-3 rounded-lg font-bold transition">AUTHENTICATE</button>
+                            <input id="l_id" type="text" placeholder="اسم المستخدم / ID" className="input-fbi text-center" />
+                            <input id="l_pw" type="password" placeholder="كلمة المرور" className="input-fbi text-center" />
+                            <button onClick={handleLogin} className="w-full btn-blue py-4 rounded-xl active:scale-95 transition">دخول النظام</button>
                         </div>
                     </div>
                 </div>
@@ -135,189 +132,192 @@
                     {/* Header */}
                     <header className="p-5 flex justify-between items-center bg-blue-900/20 border-b border-white/5">
                         <div className="flex items-center gap-3">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Seal_of_the_Federal_Bureau_of_Investigation.svg" className="w-8 h-8" />
+                            <div className={`w-3 h-3 rounded-full ${isCommand ? 'bg-yellow-500 animate-pulse' : 'bg-green-500'}`}></div>
                             <div>
-                                <h2 className="text-sm font-black leading-none">FBI HUB</h2>
-                                <span className="text-[9px] text-yellow-500 font-bold uppercase">{user.rank}</span>
+                                <h2 className="text-sm font-black leading-none">{user.name}</h2>
+                                <p className="text-[10px] text-yellow-500 font-bold mt-1 uppercase">{user.rank}</p>
                             </div>
                         </div>
-                        <div className="text-left">
-                            <p className="text-[10px] text-gray-400">Welcome, Agent</p>
-                            <p className="text-xs font-bold">{user.name}</p>
-                        </div>
+                        <button onClick={() => setView('login')} className="text-gray-500 text-xs uppercase font-bold italic">Logout</button>
                     </header>
 
-                    {/* Main Content */}
-                    <main className="flex-1 overflow-y-auto p-4 pb-24 hide-scroll">
+                    {/* Main Content Area */}
+                    <main className="flex-1 overflow-y-auto p-4 pb-32 hide-scroll">
+                        
+                        {/* 1. الصفحة الرئيسية والتقارير */}
                         {view === 'home' && (
-                            <div className="space-y-6 animate-fade-in">
+                            <div className="animate-slide space-y-6">
                                 <div className="grid grid-cols-2 gap-3">
-                                    <div className="glass-panel p-4 border-r-2 border-yellow-500">
-                                        <p className="text-[10px] text-gray-500 font-bold">WANTED ENTRIES</p>
-                                        <h3 className="text-2xl font-black">{data.wanted.length}</h3>
-                                    </div>
-                                    <div className="glass-panel p-4 border-r-2 border-blue-500">
-                                        <p className="text-[10px] text-gray-500 font-bold">TOTAL AGENTS</p>
+                                    <div className="glass-panel p-4 border-r-4 border-blue-600">
+                                        <p className="text-[10px] text-gray-500 font-bold">Agents Online</p>
                                         <h3 className="text-2xl font-black">{data.users.length}</h3>
                                     </div>
+                                    <div className="glass-panel p-4 border-r-4 border-red-600">
+                                        <p className="text-[10px] text-gray-500 font-bold">Wanted</p>
+                                        <h3 className="text-2xl font-black">{data.wanted.length}</h3>
+                                    </div>
                                 </div>
 
-                                {isAdmin && (
-                                    <div className="p-4 glass-panel bg-yellow-500/5 border border-yellow-500/20">
-                                        <h4 className="text-xs font-bold text-yellow-500 mb-3 flex items-center gap-2">
-                                            <i className="fas fa-lock"></i> ADMIN COMMANDS
-                                        </h4>
-                                        <button onClick={() => setView('staff')} className="w-full bg-white/5 py-3 rounded-lg text-sm font-bold hover:bg-white/10 transition">Manage Personnel</button>
-                                    </div>
-                                )}
+                                <button onClick={() => setModal('report')} className="w-full btn-blue py-3 rounded-xl flex items-center justify-center gap-2">
+                                    <i className="fas fa-edit"></i> كتابة تقرير ميداني جديد
+                                </button>
 
-                                <div>
-                                    <h4 className="text-xs font-bold text-gray-500 mb-3">RECENT INTELLIGENCE</h4>
-                                    <div className="space-y-3">
-                                        {data.reports.map(r => (
-                                            <div key={r.id} className="glass-panel p-4 text-sm border-l-2 border-blue-500">
-                                                <div className="flex justify-between mb-2 text-[10px]">
-                                                    <span className="text-blue-400 font-bold">{r.author}</span>
-                                                    <span className="text-gray-500">REPORT FILE</span>
-                                                </div>
-                                                <p className="text-gray-300">{r.content}</p>
+                                <div className="space-y-3">
+                                    <h4 className="text-xs font-bold text-gray-500 uppercase px-1">آخر البلاغات المسجلة</h4>
+                                    {data.reports.map(r => (
+                                        <div key={r.id} className="glass-panel p-4 border-l-2 border-blue-500">
+                                            <div className="flex justify-between mb-2">
+                                                <span className="text-blue-400 font-bold text-[10px] uppercase">{r.authorRank} / {r.author}</span>
                                             </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {view === 'staff' && (
-                            <div className="animate-fade-in space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <h3 className="font-bold">Personnel Records</h3>
-                                    <button onClick={() => setModal('add_staff')} className="bg-blue-600 px-4 py-2 rounded-lg text-xs font-bold">+ New Agent</button>
-                                </div>
-                                {data.users.map(u => (
-                                    <div key={u.id} className="glass-panel p-4 flex justify-between items-center">
-                                        <div>
-                                            <p className="font-bold text-sm">{u.name}</p>
-                                            <p className="text-[10px] text-yellow-500">{u.rank}</p>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button onClick={() => { setEditTarget(u); setModal('add_staff'); }} className="p-2 text-blue-400"><i className="fas fa-edit"></i></button>
-                                            <button onClick={async () => confirm('Dismiss agent?') && await window.fb.deleteDoc(window.fb.doc(window.fb.db, "users", u.id))} className="p-2 text-red-500"><i className="fas fa-trash"></i></button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {view === 'wanted' && (
-                            <div className="animate-fade-in space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <h3 className="font-bold text-red-500">Most Wanted List</h3>
-                                    <button onClick={() => setModal('add_wanted')} className="bg-red-600 px-4 py-2 rounded-lg text-xs font-bold">Add Target</button>
-                                </div>
-                                {data.wanted.map(w => (
-                                    <div key={w.id} className="glass-panel p-4 border-r-4 border-red-600">
-                                        <h4 className="font-bold">{w.name}</h4>
-                                        <p className="text-xs text-gray-400 mt-1">{w.charge}</p>
-                                        <div className="mt-3 flex justify-between items-center">
-                                            <span className="text-[9px] bg-red-600/20 text-red-500 px-2 py-1 rounded font-bold uppercase">{w.danger} Level</span>
-                                            <button className="text-[10px] text-blue-400">View Dossier</button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {view === 'civilians' && (
-                            <div className="animate-fade-in space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <h3 className="font-bold">National Database</h3>
-                                    <button onClick={() => setModal('add_civil')} className="bg-purple-600 px-4 py-2 rounded-lg text-xs font-bold">+ Register</button>
-                                </div>
-                                <input placeholder="Search ID or Name..." className="input-fbi mb-4" />
-                                <div className="grid grid-cols-2 gap-3">
-                                    {data.civilians.map(c => (
-                                        <div key={c.id} className="glass-panel p-3 text-center">
-                                            <div className="w-12 h-12 bg-gray-800 rounded-full mx-auto mb-2 flex items-center justify-center font-bold text-purple-400">{c.name[0]}</div>
-                                            <p className="text-xs font-bold truncate">{c.name}</p>
-                                            <p className="text-[9px] text-gray-500 mt-1">{c.sonyId}</p>
+                                            <p className="text-xs text-gray-300">{r.content}</p>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
+
+                        {/* 2. صفحة المطلوبين */}
+                        {view === 'wanted' && (
+                            <div className="animate-slide space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-black text-red-500 uppercase">قائمة المطلوبين فيدرالياً</h3>
+                                    <button onClick={() => setModal('wanted')} className="bg-red-600 px-3 py-1 rounded text-[10px] font-black uppercase">إضافة هدف</button>
+                                </div>
+                                {data.wanted.map(w => (
+                                    <div key={w.id} className="glass-panel p-4 border-r-4 border-red-600 flex justify-between items-center">
+                                        <div>
+                                            <h4 className="font-bold text-sm">{w.name}</h4>
+                                            <p className="text-[10px] text-gray-400 mt-1">{w.charge}</p>
+                                            <span className="text-[8px] bg-red-600/20 text-red-500 px-2 py-0.5 rounded font-black mt-2 inline-block">خطر: {w.danger}</span>
+                                        </div>
+                                        {isCommand && <button onClick={async() => await window.fb.deleteDoc(window.fb.doc(window.fb.db, "wanted", w.id))} className="text-red-900"><i className="fas fa-trash"></i></button>}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* 3. صفحة المدنيين */}
+                        {view === 'civilians' && (
+                            <div className="animate-slide space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <h3 className="font-black uppercase">السجل المدني</h3>
+                                    <button onClick={() => setModal('civilian')} className="bg-blue-600 px-3 py-1 rounded text-[10px] font-black uppercase">تسجيل مواطن</button>
+                                </div>
+                                <div className="grid grid-cols-1 gap-3">
+                                    {data.civilians.map(c => (
+                                        <div key={c.id} className="glass-panel p-4 flex items-center gap-4">
+                                            <div className="w-10 h-10 bg-blue-600/20 rounded-full flex items-center justify-center text-blue-500 font-black">{c.name[0]}</div>
+                                            <div>
+                                                <h4 className="font-bold text-sm">{c.name}</h4>
+                                                <p className="text-[10px] text-gray-500">ID: {c.sonyId} | هاتف: {c.phone}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 4. صفحة الموظفين (للقيادة فقط) */}
+                        {view === 'staff' && (
+                            <div className="animate-slide space-y-4">
+                                {isCommand ? (
+                                    <>
+                                        <div className="flex justify-between items-center">
+                                            <h3 className="font-black text-yellow-500 uppercase">إدارة الكادر الفيدرالي</h3>
+                                            <button onClick={() => setModal('staff')} className="btn-gold px-3 py-1 rounded text-[10px]">توظيف عميل</button>
+                                        </div>
+                                        {data.users.map(u => (
+                                            <div key={u.id} className="glass-panel p-4 flex justify-between items-center border-l-2 border-yellow-500">
+                                                <div>
+                                                    <p className="font-bold text-sm">{u.name}</p>
+                                                    <p className="text-[10px] text-gray-500 uppercase">{u.rank} | {u.access === 'command' ? 'قيادي' : 'ميداني'}</p>
+                                                </div>
+                                                <div className="flex gap-3">
+                                                    <button onClick={() => { setEditItem(u); setModal('staff'); }} className="text-blue-500"><i className="fas fa-edit"></i></button>
+                                                    <button onClick={async() => confirm('فصل العميل؟') && await window.fb.deleteDoc(window.fb.doc(window.fb.db, "users", u.id))} className="text-red-500"><i className="fas fa-user-slash"></i></button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </>
+                                ) : (
+                                    <div className="text-center p-10 glass-panel">
+                                        <i className="fas fa-exclamation-triangle text-3xl text-red-600 mb-4"></i>
+                                        <h3 className="font-black">دخول محظور</h3>
+                                        <p className="text-xs text-gray-500 mt-2">تحتاج إلى صلاحيات Command Access</p>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                     </main>
 
-                    {/* Navigation */}
-                    <nav className="fixed bottom-0 w-full glass-panel rounded-none border-t border-white/5 p-4 flex justify-around items-center z-50">
-                        <button onClick={() => setView('home')} className={`nav-btn ${view === 'home' ? 'active' : ''}`}>
-                            <i className="fas fa-th-large text-xl"></i>
-                            <span>Home</span>
-                        </button>
-                        <button onClick={() => setView('wanted')} className={`nav-btn ${view === 'wanted' ? 'active' : ''}`}>
-                            <i className="fas fa-bullseye text-xl"></i>
-                            <span>Wanted</span>
-                        </button>
-                        <button onClick={() => setModal('add_report')} className="w-12 h-12 bg-blue-700 rounded-full -mt-10 border-4 border-[#020617] flex items-center justify-center text-white shadow-xl">
+                    {/* Bottom Navbar */}
+                    <nav className="fixed bottom-0 w-full glass-panel rounded-none border-t border-white/10 p-4 flex justify-around items-center z-[100]">
+                        <button onClick={() => setView('home')} className={`nav-btn ${view === 'home' ? 'active' : ''}`}><i className="fas fa-shield-halved text-xl"></i><span>الرئيسية</span></button>
+                        <button onClick={() => setView('wanted')} className={`nav-btn ${view === 'wanted' ? 'active' : ''}`}><i className="fas fa-crosshairs text-xl"></i><span>المطلوبين</span></button>
+                        <div className="w-14"></div> {/* مساحة للزر الأوسط */}
+                        <button onClick={() => setView('civilians')} className={`nav-btn ${view === 'civilians' ? 'active' : ''}`}><i className="fas fa-users text-xl"></i><span>المدنيين</span></button>
+                        <button onClick={() => setView('staff')} className={`nav-btn ${view === 'staff' ? 'active' : ''}`}><i className="fas fa-user-gear text-xl"></i><span>الموظفين</span></button>
+                        
+                        {/* الزر الأوسط للإضافة السريعة */}
+                        <button onClick={() => setModal('report')} className="absolute left-1/2 -translate-x-1/2 -top-6 w-14 h-14 bg-blue-700 rounded-full border-4 border-[#020617] shadow-xl text-white text-xl flex items-center justify-center active:scale-90 transition">
                             <i className="fas fa-plus"></i>
-                        </button>
-                        <button onClick={() => setView('civilians')} className={`nav-btn ${view === 'civilians' ? 'active' : ''}`}>
-                            <i className="fas fa-address-book text-xl"></i>
-                            <span>Civilians</span>
-                        </button>
-                        <button onClick={() => setView('staff')} className={`nav-btn ${view === 'staff' ? 'active' : ''}`}>
-                            <i className="fas fa-user-secret text-xl"></i>
-                            <span>Agents</span>
                         </button>
                     </nav>
 
-                    {/* Modals */}
+                    {/* Universal Modal */}
                     {modal && (
-                        <div className="fixed inset-0 bg-black/90 z-[100] flex items-end sm:items-center justify-center p-4">
-                            <div className="w-full max-w-md glass-panel p-6 animate-fade-in">
-                                <h3 className="text-lg font-bold mb-6 text-center text-yellow-500 uppercase">
-                                    {modal.replace('_', ' ')}
+                        <div className="fixed inset-0 bg-black/95 z-[200] flex items-center justify-center p-6 backdrop-blur-sm">
+                            <div className="w-full max-w-md glass-panel p-6 border-t-2 border-yellow-500 animate-slide">
+                                <h3 className="text-center font-black mb-6 uppercase tracking-widest text-yellow-500">
+                                    {modal === 'staff' ? 'إدارة الموظف' : modal === 'civilian' ? 'تسجيل مدني' : modal === 'wanted' ? 'إضافة مطلوب' : 'تقرير جديد'}
                                 </h3>
-                                
-                                <form onSubmit={(e) => handleFormSubmit(e, modal === 'add_staff' ? 'users' : modal === 'add_wanted' ? 'wanted' : modal === 'add_civil' ? 'civilians' : 'field_reports')}>
+
+                                <form onSubmit={(e) => submitForm(e, modal === 'staff' ? 'users' : modal === 'civilian' ? 'civilians' : modal === 'wanted' ? 'wanted' : 'field_reports')}>
                                     <div className="space-y-4">
-                                        {modal === 'add_staff' && (
+                                        {modal === 'staff' && (
                                             <>
-                                                <input name="id" placeholder="Agent ID (Username)" defaultValue={editTarget?.id} className="input-fbi" required />
-                                                <input name="name" placeholder="Full Name" defaultValue={editTarget?.name} className="input-fbi" required />
-                                                <select name="rank" defaultValue={editTarget?.rank || "Special Agent"} className="input-fbi">
-                                                    {RANKS.map(r => <option key={r} value={r}>{r}</option>)}
+                                                <input name="id" placeholder="اسم المستخدم (ID الدخول)" defaultValue={editItem?.id} className="input-fbi" required />
+                                                <input name="name" placeholder="اسم العميل الكامل" defaultValue={editItem?.name} className="input-fbi" required />
+                                                <select name="rank" defaultValue={editItem?.rank || 'Special Agent'} className="input-fbi">
+                                                    {RANKS.map(r => <option key={r} value={r} className="bg-slate-900">{r}</option>)}
                                                 </select>
-                                                <input name="password" type="text" placeholder="Access Password" defaultValue={editTarget?.password} className="input-fbi" required />
+                                                <select name="access" defaultValue={editItem?.access || 'field'} className="input-fbi border-yellow-500/50">
+                                                    <option value="field" className="bg-slate-900">صلاحية ميدانية (Field)</option>
+                                                    <option value="command" className="bg-slate-900 text-yellow-500">صلاحية قيادية (Command)</option>
+                                                </select>
+                                                <input name="password" placeholder="كلمة المرور" defaultValue={editItem?.password} className="input-fbi" required />
                                             </>
                                         )}
-                                        {modal === 'add_wanted' && (
+
+                                        {modal === 'civilian' && (
                                             <>
-                                                <input name="name" placeholder="Target Name" className="input-fbi" required />
-                                                <input name="charge" placeholder="Primary Charge" className="input-fbi" required />
+                                                <input name="name" placeholder="اسم المواطن" className="input-fbi" required />
+                                                <input name="sonyId" placeholder="رقم الهوية" className="input-fbi" required />
+                                                <input name="phone" placeholder="رقم الجوال" className="input-fbi" />
+                                            </>
+                                        )}
+
+                                        {modal === 'wanted' && (
+                                            <>
+                                                <input name="name" placeholder="اسم المطلوب" className="input-fbi" required />
+                                                <input name="charge" placeholder="التهمة الرئيسية" className="input-fbi" required />
                                                 <select name="danger" className="input-fbi">
-                                                    <option value="Low">Low Threat</option>
-                                                    <option value="Medium">Medium Threat</option>
-                                                    <option value="Extreme">Extreme Threat (Armed)</option>
+                                                    <option value="Low">منخفض</option>
+                                                    <option value="Medium">متوسط</option>
+                                                    <option value="High">خطر جداً</option>
                                                 </select>
                                             </>
                                         )}
-                                        {modal === 'add_civil' && (
-                                            <>
-                                                <input name="name" placeholder="Citizen Name" className="input-fbi" required />
-                                                <input name="sonyId" placeholder="National ID / Discord" className="input-fbi" required />
-                                                <input name="phone" placeholder="Phone Number" className="input-fbi" />
-                                            </>
-                                        )}
-                                        {modal === 'add_report' && (
-                                            <>
-                                                <textarea name="content" placeholder="Enter operation details..." className="input-fbi h-32" required></textarea>
-                                            </>
+
+                                        {modal === 'report' && (
+                                            <textarea name="content" placeholder="اكتب تفاصيل العملية هنا..." className="input-fbi h-40 resize-none" required></textarea>
                                         )}
                                     </div>
-                                    <div className="flex gap-3 mt-6">
-                                        <button type="submit" className="flex-1 bg-blue-700 py-3 rounded-lg font-bold">COMMIT</button>
-                                        <button type="button" onClick={() => {setModal(null); setEditTarget(null);}} className="flex-1 bg-white/5 py-3 rounded-lg font-bold">CANCEL</button>
+
+                                    <div className="flex gap-3 mt-8">
+                                        <button type="submit" className="flex-1 btn-gold py-3 rounded-xl uppercase">تأفيذ</button>
+                                        <button type="button" onClick={() => {setModal(null); setEditItem(null);}} className="flex-1 bg-white/10 py-3 rounded-xl uppercase">إلغاء</button>
                                     </div>
                                 </form>
                             </div>
