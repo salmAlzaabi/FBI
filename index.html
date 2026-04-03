@@ -247,7 +247,7 @@ const App = () => {
     };
 
     /* ─── HOME ─── */
-    if (screen === 'home') return (
+if (screen === 'home') return (
         <div style={{background:'radial-gradient(ellipse at 15% 50%, rgba(139,0,0,0.18) 0%, transparent 55%), linear-gradient(180deg,#010308 0%,#04091a 60%,#010308 100%)', minHeight:'100vh', display:'flex', flexDirection:'column', overflow:'hidden', position:'relative'}}>
             <ScanLine/>
             <Ticker/>
@@ -275,12 +275,12 @@ const App = () => {
                     <span className="display" style={{letterSpacing:'0.3em',fontSize:'0.85rem',color:'white'}}>TOP SECRET // SCI // NOFORN</span>
                 </div>
                 <p className="mono" style={{color:'#2a2a40',fontSize:'0.65rem',letterSpacing:'0.2em',marginBottom:32,maxWidth:280,lineHeight:1.8}}>AUTHORIZED PERSONNEL ONLY<br/>ALL ACTIVITY IS LOGGED AND MONITORED</p>
-                <div style={{display:'flex',flexDirection:'column',gap:12,width:'100%',maxWidth:300}}>
-                    <button className="btn-gold" style={{width:'100%'}} onClick={() => setScreen('login')}>
-                        <i className="fas fa-shield-halved" style={{marginRight:10}}/> ENTER SYSTEM
-                    </button>
-                    <button className="btn-ghost" style={{width:'100%'}} onClick={() => setScreen('login')}>
-                        <i className="fas fa-lock" style={{marginRight:8}}/> CLASSIFIED ACCESS
+                
+                {/* تم استبدال الزرين بزر واحد هنا */}
+                <div style={{width:'100%', maxWidth:320, marginTop:10}}>
+                    <button className="btn-gold" style={{width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:12, padding:'16px 0'}} onClick={() => setScreen('login')}>
+                        <i className="fas fa-shield-halved" style={{fontSize:'1.1rem'}}/>
+                        <span style={{letterSpacing:'0.15em'}}>INITIALIZE SECURE LOGIN</span>
                     </button>
                 </div>
             </div>
@@ -290,7 +290,6 @@ const App = () => {
             </div>
         </div>
     );
-
     /* ─── LOGIN ─── */
     if (screen === 'login') return (
         <div style={{height:'100vh',width:'100vw',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:24,background:'radial-gradient(ellipse at center,#040b20 0%,#020610 100%)',animation:'fadeIn 0.4s ease'}}>
