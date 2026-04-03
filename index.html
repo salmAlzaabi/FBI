@@ -170,15 +170,25 @@ const App = () => {
     const [allMarkers, setAllMarkers] = useState([]);
     const chatEndRef = useRef(null);
 
-    useEffect(() => {
+useEffect(() => {
         if (!window.fbTools) return;
         const db = window.fbDB, T = window.fbTools;
+        
+        // جلب البيانات الأساسية (المستخدمين، المطلوبين، المدنيين)
         const u1 = T.onSnapshot(T.collection(db,'users'),     s => setAllUsers(s.docs.map(d=>({...d.data(),id:d.id}))));
         const u2 = T.onSnapshot(T.collection(db,'wanted'),    s => setAllWanted(s.docs.map(d=>({...d.data(),id:d.id}))));
         const u3 = T.onSnapshot(T.collection(db,'civilians'), s => setAllCivilians(s.docs.map(d=>({...d.data(),id:d.id}))));
+        
+        // جلب القضايا مرتبة حسب التاريخ
         const q  = T.query(T.collection(db,'fbi_cases'),T.orderBy('createdAt','desc'));
         const u4 = T.onSnapshot(q, s => setAllCases(s.docs.map(d=>({...d.data(),id:d.id}))));
-        return () => { u1(); u2(); u3(); u4(); };
+
+        // --- التحديث الجديد لربط الخريطة عند الكل ---
+        const u5 = T.onSnapshot(T.collection(db, 'ops_duty'), s => setAllOnDuty(s.docs.map(d => ({ ...d.data(), id: d.id }))));
+        const u6 = T.onSnapshot(T.collection(db, 'ops_markers'), s => setAllMarkers(s.docs.map(d => ({ ...d.data(), id: d.id }))));
+
+        // إيقاف المراقبة عند إغلاق المتصفح لضمان الأداء
+        return () => { u1(); u2(); u3(); u4(); u5(); u6(); };
     }, []);
 
     useEffect(() => { chatEndRef.current?.scrollIntoView({behavior:'smooth'}); }, [chatLog]);
