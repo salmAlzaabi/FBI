@@ -587,7 +587,145 @@ const ChatTab = () => {
             </div>
         );
     };
+    /* ==================================================================
+   SECTION: OPERATIONS CENTER (صفحة مركز العمليات والميدان)
+   DESCRIPTION: خريطة تفاعلية، نظام المباشرين، وتوزيع المهام الميدانية
+==================================================================
+*/
+
+const OpsCenterTab = () => {
+    // --- State Management (إدارة الحالات) ---
+    const [onDuty, setOnDuty] = React.useState([]); 
+    const [isDuty, setIsDuty] = React.useState(false); 
+    const [fieldCommander, setFieldCommander] = React.useState(null); 
+    const [isDistributing, setIsDistributing] = React.useState(false); 
+    const [selectedForDist, setSelectedForDist] = React.useState(null); 
+    const [markers, setMarkers] = React.useState([]); 
+
+    // --- Logic Functions (الوظائف البرمجية) ---
     
+    // تسجيل الدخول والخروج من الميدان
+    const toggleDuty = () => {
+        if (!isDuty) {
+            const newUser = {
+                id: Date.now(),
+                name: currentUser.name,
+                rank: currentUser.rank,
+                img: "https://i.imgur.com/6VBx3io.png", 
+                startTime: new Date()
+            };
+            setOnDuty([...onDuty, newUser]);
+        } else {
+            setOnDuty(onDuty.filter(u => u.name !== currentUser.name));
+            if (fieldCommander === currentUser.name) setFieldCommander(null);
+        }
+        setIsDuty(!isDuty);
+    };
+
+    // حساب مدة الاستلام
+    const getDuration = (start) => {
+        const diff = Math.floor((new Date() - start) / 60000);
+        return `${diff}m`;
+    };
+
+    // وضع الدبوس عند الضغط على الخريطة
+    const handleMapClick = (e) => {
+        if (isDistributing && selectedForDist) {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100; // نسبة مئوية لضمان الثبات
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            
+            const newMarker = {
+                id: Date.now(),
+                name: selectedForDist.name,
+                x: x,
+                y: y
+            };
+            setMarkers([...markers, newMarker]);
+            setIsDistributing(false);
+            setSelectedForDist(null);
+        }
+    };
+
+    return (
+        <div className="animate-fade-up" style={{display:'flex', flexDirection:'column', gap:15, height:'calc(100vh - 180px)'}}>
+            
+            {/* 1. Header Controls (أزرار التحكم العلوية) */}
+            <div style={{display:'flex', gap:10}}>
+                <button className={isDuty ? "btn-crimson" : "btn-gold"} style={{flex:1, padding:12}} onClick={toggleDuty}>
+                    <i className="fas fa-satellite" style={{marginRight:8}}/>
+                    {isDuty ? "إنهاء حالة الاستلام" : "بدء استلام ميداني"}
+                </button>
+                {fieldCommander === currentUser.name && (
+                    <button className="btn-gold" style={{flex:1, border:'1px solid #4ade80', color:'#4ade80'}} onClick={() => setMarkers([])}>
+                        <i className="fas fa-sync-alt" style={{marginRight:8}}/> إعادة تصفير الخريطة
+                    </button>
+                )}
+            </div>
+
+            <div style={{display:'flex', gap:15, flex:1, minHeight:0}}>
+                
+                {/* 2. Interactive Map (الخريطة التفاعلية) */}
+                <div className="glass-card" style={{flex:2, position:'relative', overflow:'hidden', cursor: isDistributing ? 'crosshair' : 'default', background:'#0a0a0a'}} onClick={handleMapClick}>
+                    <Corners/>
+                    <img src="https://i.imgur.com/8YlF6p8.jpg" style={{width:'100%', height:'100%', objectFit:'contain', opacity:0.6}} />
+                    
+                    {/* عرض الدبابيس الموزعة */}
+                    {markers.map(m => (
+                        <div key={m.id} style={{position:'absolute', left: `${m.x}%`, top: `${m.y}%`, transform:'translate(-50%, -100%)', pointerEvents:'none'}}>
+                            <i className="fas fa-map-pin" style={{color:'var(--gold)', fontSize:'1.2rem', filter:'drop-shadow(0 0 5px #000)'}}/>
+                            <div style={{background:'rgba(0,0,0,0.8)', color:'#fff', padding:'2px 6px', borderRadius:2, fontSize:'0.5rem', marginTop:2, border:'1px solid var(--gold)'}} className="mono">
+                                {m.name}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* 3. Units Sidebar (قائمة المباشرين - اليمين) */}
+                <div className="glass-card" style={{flex:1, padding:15, display:'flex', flexDirection:'column', gap:10, overflowY:'auto'}}>
+                    <Corners/>
+                    <p className="display" style={{fontSize:'0.7rem', color:'var(--gold)', letterSpacing:'0.1em'}}>UNITS ON-DUTY</p>
+                    
+                    {onDuty.length === 0 && <p className="mono" style={{fontSize:'0.6rem', color:'#445', textAlign:'center', marginTop:20}}>لا يوجد وحدات نشطة حالياً</p>}
+
+                    {onDuty.map(u => (
+                        <div key={u.id} className="log-entry" style={{padding:8, display:'flex', alignItems:'center', gap:10, border:'1px solid rgba(201,168,76,0.1)'}}>
+                            <img src={u.img} style={{width:35, height:35, borderRadius:3, border:'1px solid #222'}} />
+                            <div style={{flex:1}} onClick={() => {
+                                if(confirm(`تعيين ${u.name} كمسؤول ميداني؟`)) setFieldCommander(u.name);
+                            }}>
+                                <p style={{fontSize:'0.75rem', fontWeight:'bold', color: fieldCommander === u.name ? 'var(--gold)' : '#eee'}}>
+                                    {u.name} {fieldCommander === u.name && <i className="fas fa-crown" style={{fontSize:'0.6rem', marginLeft:5}}/>}
+                                </p>
+                                <p className="mono" style={{fontSize:'0.45rem', color:'#667'}}>{u.rank} • {getDuration(u.startTime)}</p>
+                            </div>
+                            
+                            {/* زر التوزيع يظهر فقط للمسؤول الميداني */}
+                            {fieldCommander === currentUser.name && (
+                                <button className="btn-gold" style={{padding:'4px 8px', fontSize:'0.5rem'}} onClick={() => {
+                                    setSelectedForDist(u);
+                                    setIsDistributing(true);
+                                }}>توزيع</button>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* نظام التنبيه عند التوزيع */}
+            {isDistributing && (
+                <div style={{position:'absolute', bottom:20, left:'50%', transform:'translateX(-50%)', background:'var(--gold)', color:'#000', padding:'5px 20px', borderRadius:20, zIndex:100, fontWeight:'bold', fontSize:'0.7rem'}} className="animate-pulse">
+                    حدّد موقع الاستلام لـ {selectedForDist?.name} على الخريطة...
+                </div>
+            )}
+        </div>
+    );
+};
+
+/* ==================================================================
+   END OF OPERATIONS CENTER SECTION
+==================================================================
+*/
     const LogsTab = () => (
         <div className="animate-fade-up" style={{display:'flex',flexDirection:'column',gap:14}}>
             <p className="display" style={{fontSize:'1.1rem',color:'var(--gold)',letterSpacing:'0.15em'}}>ACTIVITY LOG</p>
