@@ -169,12 +169,12 @@ const App = () => {
     const [allOnDuty, setAllOnDuty] = useState([]); 
     const [allMarkers, setAllMarkers] = useState([]);
     const chatEndRef = useRef(null);
-
+const [allAlerts, setAllAlerts] = useState([]);
 useEffect(() => {
         if (!window.fbTools) return;
         const db = window.fbDB, T = window.fbTools;
         
-        // جلب البيانات الأساسية (المستخدمين، المطلوبين، المدنيين)
+        // جلب البيانات الأساسية
         const u1 = T.onSnapshot(T.collection(db,'users'),     s => setAllUsers(s.docs.map(d=>({...d.data(),id:d.id}))));
         const u2 = T.onSnapshot(T.collection(db,'wanted'),    s => setAllWanted(s.docs.map(d=>({...d.data(),id:d.id}))));
         const u3 = T.onSnapshot(T.collection(db,'civilians'), s => setAllCivilians(s.docs.map(d=>({...d.data(),id:d.id}))));
@@ -183,14 +183,19 @@ useEffect(() => {
         const q  = T.query(T.collection(db,'fbi_cases'),T.orderBy('createdAt','desc'));
         const u4 = T.onSnapshot(q, s => setAllCases(s.docs.map(d=>({...d.data(),id:d.id}))));
 
-        // --- التحديث الجديد لربط الخريطة عند الكل ---
+        // ربط الخريطة والوحدات
         const u5 = T.onSnapshot(T.collection(db, 'ops_duty'), s => setAllOnDuty(s.docs.map(d => ({ ...d.data(), id: d.id }))));
         const u6 = T.onSnapshot(T.collection(db, 'ops_markers'), s => setAllMarkers(s.docs.map(d => ({ ...d.data(), id: d.id }))));
 
-        // إيقاف المراقبة عند إغلاق المتصفح لضمان الأداء
-        return () => { u1(); u2(); u3(); u4(); u5(); u6(); };
-    }, []);
+        // --- السطر الجديد والمهم لبلاغات البوت ---
+        const u7 = T.onSnapshot(T.query(T.collection(db, 'map_alerts'), T.orderBy('timestamp', 'desc')), s => {
+            setAllAlerts(s.docs.map(d => ({ ...d.data(), id: d.id })));
+        });
 
+        // إيقاف المراقبة عند إغلاق المتصفح (أضفنا u7 هنا أيضاً)
+        return () => { u1(); u2(); u3(); u4(); u5(); u6(); u7(); };
+    }, []);
+    
     useEffect(() => { chatEndRef.current?.scrollIntoView({behavior:'smooth'}); }, [chatLog]);
 
     const addLog = (action) => {
