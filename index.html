@@ -514,56 +514,38 @@ const ChatTab = () => {
         const [decodeInput, setDecodeInput] = React.useState('');
         const [decodedResult, setDecodedResult] = React.useState('');
 
-        // نظام التشفير المطور لدعم اللغة العربية 100%
+        // نظام التشفير الرقمي المطور (FBI-HEX-v5) - يدعم العربي 100%
         const encrypt = (text) => {
             if (!text) return '';
             try {
-                // تحويل النص العربي إلى صيغة بايتات آمنة
-                const utf8Text = btoa(encodeURIComponent(text).replace(/%([0-9A-F]{2})/g, (match, p1) => 
-                    String.fromCharCode('0x' + p1)
-                ));
+                // تحويل النص إلى HEX لضمان عدم ضياع الحروف العربية
+                const encoder = new TextEncoder();
+                const v = encoder.encode(text);
+                let hex = Array.from(v).map(b => b.toString(16).padStart(2, '0')).join('');
                 
-                const map = {
-                    'A':'Σ', 'B':'Δ', 'C':'7', 'D':'Θ', 'E':'Ξ', 'F':'Φ', 'G':'9', 'H':'Ψ', 
-                    'I':'1', 'J':'ζ', 'K':'κ', 'L':'λ', 'M':'μ', 'N':'ν', 'O':'0', 'P':'π',
-                    'Q':'ρ', 'R':'5', 'S':'σ', 'T':'τ', 'U':'υ', 'V':'4', 'W':'ω', 'X':'χ',
-                    'Y':'ψ', 'Z':'2', '=': '≠', '+': '†', '/': '¦'
-                };
-                
-                return utf8Text.split('').map(char => {
-                    const isUpper = char === char.toUpperCase() && /[A-Z]/.test(char);
-                    const symbol = map[char.toUpperCase()] || char;
-                    return isUpper ? symbol : symbol.toLowerCase();
-                }).join('·');
+                // إضافة لمسة تشفير (تبديل أرقام برموز فخمة)
+                const map = {'0':'X', '1':'V', '2':'I', '3':'A', '4':'B', '5':'S', '6':'T', '7':'Z', '8':'K', '9':'P'};
+                return hex.split('').map(char => map[char] || char).join('·').toUpperCase();
             } catch(e) { return "ERROR"; }
         };
 
         const decrypt = (cipher) => {
             if (!cipher) return '';
             try {
-                const rev = {
-                    'Σ':'A', 'Δ':'B', '7':'C', 'Θ':'D', 'Ξ':'E', 'Φ':'F', '9':'G', 'Ψ':'H',
-                    '1':'I', 'ζ':'J', 'κ':'K', 'λ':'L', 'μ':'M', 'ν':'N', '0':'O', 'π':'P',
-                    'ρ':'Q', '5':'R', 'σ':'S', 'τ':'T', 'υ':'U', '4':'V', 'ω':'W', 'χ':'X',
-                    'ψ':'Y', '2':'Z', '≠':'=', '†':'+', '¦':'/'
-                };
+                const rev = {'X':'0', 'V':'1', 'I':'2', 'A':'3', 'B':'4', 'S':'5', 'T':'6', 'Z':'7', 'K':'8', 'P':'9'};
+                const clean = cipher.split('·').map(c => rev[c] || c).join('').toLowerCase();
                 
-                const b64 = cipher.split('·').map(sym => {
-                    const isUpper = sym === sym.toUpperCase() && sym !== sym.toLowerCase();
-                    const char = rev[sym.toUpperCase()] || sym;
-                    return isUpper ? char.toUpperCase() : char.toLowerCase();
-                }).join('');
-                
-                // إعادة النص العربي لأصله
-                return decodeURIComponent(atob(b64).split('').map(c => 
-                    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-                ).join(''));
-            } catch (e) { return "خطأ: الشفرة تالفة أو غير مكتملة"; }
+                // تحويل الـ HEX مرة أخرى إلى نص عربي
+                const bytes = new Uint8Array(clean.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                const decoder = new TextDecoder();
+                return decoder.decode(bytes);
+            } catch (e) { return "خطأ: تأكد من نسخ الشفرة كاملة وبدون مسافات"; }
         };
 
         return (
             <div className="animate-fade-up" style={{display:'flex', flexDirection:'column', gap:20}}>
                 <p className="display" style={{fontSize:'1.1rem', color:'var(--gold)', letterSpacing:'0.15em'}}>ENIGMA CRYPTOGRAPHIC TERMINAL</p>
+                
                 <div style={{display:'flex', flexDirection:'column', gap:20}}>
                     <div className="glass-card" style={{padding:24, borderLeft:'4px solid var(--gold)'}}>
                         <Corners/>
@@ -571,7 +553,7 @@ const ChatTab = () => {
                         <textarea 
                             className="fbi-input" 
                             style={{height:80, fontSize:'0.9rem', marginBottom:15}} 
-                            placeholder="اكتب رسالتك السرية هنا (عربي أو إنجليزي)..."
+                            placeholder="اكتب رسالتك بالعربي هنا..."
                             value={rawText}
                             onChange={(e) => {
                                 setRawText(e.target.value);
@@ -591,7 +573,7 @@ const ChatTab = () => {
                         <textarea 
                             className="fbi-input" 
                             style={{height:80, fontSize:'0.9rem', marginBottom:15}} 
-                            placeholder="الصق الشفرة المستلمة هنا..."
+                            placeholder="الصق الشفرة هنا..."
                             value={decodeInput}
                             onChange={(e) => setDecodeInput(e.target.value)}
                         />
@@ -605,6 +587,7 @@ const ChatTab = () => {
             </div>
         );
     };
+    
     const LogsTab = () => (
         <div className="animate-fade-up" style={{display:'flex',flexDirection:'column',gap:14}}>
             <p className="display" style={{fontSize:'1.1rem',color:'var(--gold)',letterSpacing:'0.15em'}}>ACTIVITY LOG</p>
