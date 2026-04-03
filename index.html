@@ -561,6 +561,15 @@ const App = () => {
     const OpsCenterTab = () => {
         const [isDistributing, setIsDistributing] = useState(false);
         const [selectedForDist, setSelectedForDist] = useState(null);
+        const MAP_URLS = [
+            'https://i.imgur.com/RrrVYMq.jpeg',
+            'https://i.imgur.com/RrrVYMq.jpg',
+            'https://i.imgur.com/RrrVYMq.png',
+            'https://imgur.com/RrrVYMq.jpeg',
+        ];
+        const [mapUrlIndex, setMapUrlIndex] = useState(0);
+        const mapImgSrc = MAP_URLS[mapUrlIndex];
+        const [mapError, setMapError] = useState(false);
         const db = window.fbDB;
         const T = window.fbTools;
 
@@ -593,102 +602,186 @@ const App = () => {
         };
 
         const handleMapClick = async (e) => {
-            if (isDistributing && selectedForDist) {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const x = ((e.clientX - rect.left) / rect.width) * 100;
-                const y = ((e.clientY - rect.top) / rect.height) * 100;
-                await T.setDoc(T.doc(db, "ops_markers", selectedForDist.name), {
-                    name: selectedForDist.name, x: x, y: y
-                });
-                setIsDistributing(false);
-                setSelectedForDist(null);
-            }
+            if (!isDistributing || !selectedForDist) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            await T.setDoc(T.doc(db, "ops_markers", selectedForDist.name), {
+                name: selectedForDist.name, x, y
+            });
+            setIsDistributing(false);
+            setSelectedForDist(null);
         };
 
         const isOnDuty = allOnDuty.find(u => u.name === currentUser.name);
 
+        // رابط الصورة الاحتياطي إذا فشل Discord
+        const mapFallbackSrc = 'https://placehold.co/800x500/050a15/c9a84c?text=MAP+NOT+AVAILABLE%0AUpdate+image+URL+in+code';
+
         return (
-            <div className="animate-fade-up" style={{display:'flex', flexDirection:'column', gap:15}}>
-                <button className={isOnDuty ? "btn-red" : "btn-gold"} style={{padding:15, fontWeight:'bold', width:'100%'}} onClick={toggleDuty}>
+            <div className="animate-fade-up" style={{display:'flex', flexDirection:'column', gap:14}}>
+
+                {/* زر الحالة */}
+                <button className={isOnDuty ? "btn-red" : "btn-gold"} style={{padding:'14px 0', width:'100%'}} onClick={toggleDuty}>
                     <i className="fas fa-satellite-dish" style={{marginRight:10}}/>
-                    {isOnDuty ? "LEAVE FIELD OPERATIONS" : "JOIN FIELD OPERATIONS"}
+                    {isOnDuty ? "◼ LEAVE FIELD OPERATIONS" : "◆ JOIN FIELD OPERATIONS"}
                 </button>
 
-                <div style={{display:'flex', gap:15}}>
-                    {/* Left: Map + Feed */}
-                    <div style={{flex:2.5, display:'flex', flexDirection:'column', gap:15}}>
-                        {/* Map */}
-                        <div className="glass-card" style={{overflow:'hidden'}}>
-                            <div style={{position:'relative', width:'100%', cursor: isDistributing ? 'crosshair' : 'default'}} onClick={handleMapClick}>
-                                <img src="https://media.discordapp.net/attachments/1483119430673371217/1489640705180831994/IMG_2479.jpg"
-                                     style={{width:'100%', height:'auto', display:'block'}} alt="Tactical Map"/>
-                                {allMarkers.map(marker => (
-                                    <div key={marker.id} style={{position:'absolute', left:`${marker.x}%`, top:`${marker.y}%`, transform:'translate(-50%, -100%)', zIndex:10, pointerEvents:'none'}}>
-                                        <i className="fas fa-location-dot" style={{color:'var(--gold)', fontSize:'1.8rem', filter:'drop-shadow(0 0 5px #000)'}}/>
-                                        <div className="mono" style={{background:'rgba(0,0,0,0.9)', color:'#fff', padding:'2px 8px', fontSize:'0.6rem', border:'1px solid var(--gold)', whiteSpace:'nowrap', marginTop:2}}>
-                                            {marker.name}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                {/* تنبيه وضع التوزيع */}
+                {isDistributing && (
+                    <div style={{background:'rgba(201,168,76,0.12)', border:'2px solid var(--gold)', padding:'12px 16px', borderRadius:3, display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                        <div>
+                            <p className="mono" style={{color:'var(--gold)', fontSize:'0.65rem', fontWeight:'bold'}}>
+                                <i className="fas fa-crosshairs" style={{marginRight:8}}/>DEPLOY MODE — انقر على الخريطة
+                            </p>
+                            <p className="mono" style={{color:'#aaa', fontSize:'0.6rem', marginTop:3}}>الوحدة: {selectedForDist?.name}</p>
                         </div>
+                        <button onClick={() => { setIsDistributing(false); setSelectedForDist(null); }}
+                            className="mono" style={{color:'#cc4444', fontSize:'0.7rem', background:'none', border:'1px solid rgba(200,0,0,0.3)', padding:'5px 10px', cursor:'pointer', borderRadius:3}}>
+                            CANCEL
+                        </button>
+                    </div>
+                )}
 
-                        {/* Live Dispatch Feed */}
-                        <div className="glass-card" style={{padding:15, maxHeight:250, overflowY:'auto'}}>
-                            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:15}}>
-                                <h3 className="display" style={{fontSize:'0.8rem', color:'#ff4444', margin:0}}>LIVE DISPATCH FEED</h3>
-                                <span className="mono" style={{fontSize:'0.6rem', opacity:0.5}}>CLEARS EVERY 60 MINS</span>
-                            </div>
-                            {allAlerts.length === 0 ? (
-                                <div style={{textAlign:'center', padding:20, opacity:0.3}} className="mono">NO ACTIVE DISPATCHES</div>
-                            ) : (
-                                [...allAlerts].sort((a,b) => b.timestamp - a.timestamp).map(alert => (
-                                    <div key={alert.id} className="alert-item">
-                                        {alert.imageUrl && (
-                                            <img src={alert.imageUrl} style={{width:80, height:60, objectFit:'cover', borderRadius:4, border:'1px solid rgba(255,255,255,0.1)'}} alt="Evidence"/>
-                                        )}
-                                        <div style={{flex:1}}>
-                                            <div style={{display:'flex', justifyContent:'space-between', marginBottom:4}}>
-                                                <span className="mono" style={{color:'#ff4444', fontWeight:'bold', fontSize:'0.7rem'}}>[{alert.title || "INCIDENT"}]</span>
-                                                <span className="mono" style={{fontSize:'0.6rem', opacity:0.7}}>{new Date(alert.timestamp).toLocaleTimeString()}</span>
-                                            </div>
-                                            <div className="mono" style={{fontSize:'0.75rem', color:'#eee'}}>
-                                                <span style={{color:'var(--gold)'}}>المطلوب:</span> {alert.robber} | <span style={{color:'var(--gold)'}}> الموقع:</span> {alert.location} | <span style={{color:'var(--gold)'}}> المبلغ:</span> {alert.amount}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
+                {/* الخريطة */}
+                <div className="glass-card" style={{overflow:'hidden', position:'relative'}}>
+                    <div style={{padding:'8px 14px', borderBottom:'1px solid var(--border-gold)', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                        <span className="display" style={{fontSize:'0.75rem', color:'var(--gold)', letterSpacing:'0.2em'}}>TACTICAL MAP</span>
+                        <div style={{display:'flex', alignItems:'center', gap:6}}>
+                            <PulseDot/>
+                            <span className="mono" style={{fontSize:'0.5rem', color:'#1a3a1a'}}>LIVE</span>
                         </div>
                     </div>
+                    <div
+                        style={{position:'relative', width:'100%', cursor: isDistributing ? 'crosshair' : 'default', overflowX:'auto'}}
+                        onClick={handleMapClick}
+                    >
+                        {mapError ? (
+                            /* placeholder لو الصورة ما تحملت */
+                            <div style={{width:'100%', minHeight:220, background:'#050a15', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:12, padding:30}}>
+                                <i className="fas fa-map-location-dot" style={{fontSize:'3rem', color:'rgba(201,168,76,0.2)'}}/>
+                                <p className="mono" style={{color:'#334', fontSize:'0.65rem', textAlign:'center', letterSpacing:'0.15em'}}>MAP IMAGE UNAVAILABLE</p>
+                                <p className="mono" style={{color:'#223', fontSize:'0.55rem', textAlign:'center'}}>Discord CDN blocked — update image URL in code</p>
+                            </div>
+                        ) : (
+                            <img
+                                src={mapImgSrc}
+                                crossOrigin="anonymous"
+                                style={{width:'100%', minWidth:300, height:'auto', display:'block'}}
+                                alt="Tactical Map"
+                                onError={() => {
+                                    if (mapUrlIndex < MAP_URLS.length - 1) {
+                                        setMapUrlIndex(i => i + 1);
+                                    } else {
+                                        setMapError(true);
+                                    }
+                                }}
+                            />
+                        )}
 
-                    {/* Right: Active Units */}
-                    <div className="glass-card" style={{flex:1, padding:15, display:'flex', flexDirection:'column', gap:12, maxHeight:500, overflowY:'auto'}}>
-                        <p className="display" style={{fontSize:'0.8rem', color:'var(--gold)', borderBottom:'1px solid rgba(201,168,76,0.2)', paddingBottom:10}}>
-                            ACTIVE UNITS ({allOnDuty.length})
-                        </p>
-                        {allOnDuty.length === 0 && <div className="mono" style={{color:'#223', fontSize:'0.6rem', textAlign:'center', padding:20}}>NO UNITS ACTIVE</div>}
-                        {allOnDuty.map(unit => (
-                            <div key={unit.id} className="unit-card">
-                                <div>
-                                    <div style={{fontSize:'0.8rem', fontWeight:'bold'}}>{unit.name}</div>
-                                    <div className="mono" style={{fontSize:'0.55rem', color:'var(--gold)'}}>{unit.rank}</div>
+                        {/* دبابيس الوحدات على الخريطة */}
+                        {!mapError && allMarkers.map(marker => (
+                            <div key={marker.id} style={{
+                                position:'absolute',
+                                left:`${marker.x}%`,
+                                top:`${marker.y}%`,
+                                transform:'translate(-50%, -100%)',
+                                zIndex:10,
+                                pointerEvents:'none',
+                                textAlign:'center'
+                            }}>
+                                <i className="fas fa-location-dot" style={{color:'var(--gold)', fontSize:'1.6rem', filter:'drop-shadow(0 2px 6px rgba(0,0,0,0.9))'}}/>
+                                <div className="mono" style={{
+                                    background:'rgba(0,0,0,0.92)',
+                                    color:'#fff',
+                                    padding:'2px 7px',
+                                    fontSize:'0.55rem',
+                                    border:'1px solid var(--gold)',
+                                    whiteSpace:'nowrap',
+                                    borderRadius:2,
+                                    marginTop:2
+                                }}>
+                                    {marker.name}
                                 </div>
-                                <button className="btn-gold" style={{padding:'5px 10px', fontSize:'0.6rem'}}
-                                    onClick={() => { setSelectedForDist(unit); setIsDistributing(true); }}>
-                                    DEPLOY
-                                </button>
                             </div>
                         ))}
-                        {isDistributing && (
-                            <div style={{background:'rgba(201,168,76,0.1)', border:'1px solid var(--gold)', padding:10, borderRadius:3, textAlign:'center'}}>
-                                <p className="mono" style={{color:'var(--gold)', fontSize:'0.6rem'}}>انقر على الخريطة لتحديد موقع {selectedForDist?.name}</p>
-                                <button onClick={() => { setIsDistributing(false); setSelectedForDist(null); }}
-                                    className="mono" style={{color:'#cc4444', fontSize:'0.6rem', background:'none', border:'none', cursor:'pointer', marginTop:8}}>CANCEL</button>
-                            </div>
-                        )}
                     </div>
                 </div>
+
+                {/* قائمة الوحدات النشطة */}
+                <div className="glass-card" style={{padding:14}}>
+                    <p className="display" style={{fontSize:'0.85rem', color:'var(--gold)', marginBottom:12, letterSpacing:'0.15em'}}>
+                        ACTIVE UNITS &nbsp;<span style={{color:'#aaa', fontSize:'0.7rem'}}>({allOnDuty.length})</span>
+                    </p>
+                    {allOnDuty.length === 0 ? (
+                        <div className="mono" style={{color:'#223', fontSize:'0.6rem', textAlign:'center', padding:'20px 0'}}>
+                            <i className="fas fa-user-slash" style={{display:'block', fontSize:'1.5rem', marginBottom:8, opacity:0.3}}/>
+                            NO UNITS ACTIVE
+                        </div>
+                    ) : (
+                        <div style={{display:'flex', flexDirection:'column', gap:8}}>
+                            {allOnDuty.map(unit => (
+                                <div key={unit.id} className="unit-card" style={{borderRadius:3}}>
+                                    <div style={{display:'flex', alignItems:'center', gap:10}}>
+                                        <div style={{width:32, height:32, borderRadius:3, background:'rgba(201,168,76,0.08)', border:'1px solid var(--border-gold)', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                                            <i className="fas fa-user-shield" style={{color:'var(--gold)', fontSize:'0.75rem'}}/>
+                                        </div>
+                                        <div>
+                                            <div style={{fontSize:'0.82rem', fontWeight:'bold'}}>{unit.name}</div>
+                                            <div className="mono" style={{fontSize:'0.52rem', color:'var(--gold)'}}>{unit.rank}</div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        className="btn-gold"
+                                        style={{padding:'6px 14px', fontSize:'0.62rem'}}
+                                        onClick={() => { setSelectedForDist(unit); setIsDistributing(true); }}
+                                    >
+                                        <i className="fas fa-map-pin" style={{marginRight:5}}/>DEPLOY
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* سجل البلاغات */}
+                <div className="glass-card" style={{padding:14}}>
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12}}>
+                        <h3 className="display" style={{fontSize:'0.85rem', color:'#ff4444', margin:0, letterSpacing:'0.15em'}}>
+                            <i className="fas fa-tower-broadcast" style={{marginRight:8, fontSize:'0.7rem'}}/>LIVE DISPATCH FEED
+                        </h3>
+                        <span className="mono" style={{fontSize:'0.5rem', color:'#334'}}>AUTO-CLEARS / 60 MIN</span>
+                    </div>
+                    {allAlerts.length === 0 ? (
+                        <div style={{textAlign:'center', padding:'20px 0', opacity:0.3}} className="mono" style={{fontSize:'0.6rem'}}>
+                            <i className="fas fa-bell-slash" style={{display:'block', fontSize:'1.5rem', marginBottom:8}}/>
+                            NO ACTIVE DISPATCHES
+                        </div>
+                    ) : (
+                        <div style={{display:'flex', flexDirection:'column', gap:10}}>
+                            {[...allAlerts].sort((a,b) => b.timestamp - a.timestamp).map(alert => (
+                                <div key={alert.id} className="alert-item" style={{borderRadius:3}}>
+                                    {alert.imageUrl && (
+                                        <img src={alert.imageUrl} style={{width:72, height:54, objectFit:'cover', borderRadius:3, border:'1px solid rgba(255,68,68,0.3)', flexShrink:0}} alt="Evidence"
+                                             onError={e=>e.target.style.display='none'}/>
+                                    )}
+                                    <div style={{flex:1, minWidth:0}}>
+                                        <div style={{display:'flex', justifyContent:'space-between', marginBottom:5, flexWrap:'wrap', gap:4}}>
+                                            <span className="mono" style={{color:'#ff4444', fontWeight:'bold', fontSize:'0.68rem'}}>[{alert.title || "INCIDENT"}]</span>
+                                            <span className="mono" style={{fontSize:'0.58rem', opacity:0.6}}>{new Date(alert.timestamp).toLocaleTimeString()}</span>
+                                        </div>
+                                        <div className="mono" style={{fontSize:'0.7rem', color:'#ddd', lineHeight:1.6}}>
+                                            <span style={{color:'var(--gold)'}}>المطلوب: </span>{alert.robber}<br/>
+                                            <span style={{color:'var(--gold)'}}>الموقع: </span>{alert.location}<br/>
+                                            <span style={{color:'var(--gold)'}}>المبلغ: </span>{alert.amount}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
             </div>
         );
     };
