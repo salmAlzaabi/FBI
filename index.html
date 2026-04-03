@@ -1,615 +1,670 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FEDERAL BUREAU OF INVESTIGATION - OFFICIAL TERMINAL</title>
-    
+    <title>FBI — CENTRAL INTELLIGENCE TERMINAL</title>
+
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        /* CSS Extended Styles */
         :root {
-            --fbi-gold: #fbbf24;
-            --fbi-blue: #1d4ed8;
-            --fbi-red: #b91c1c;
-            --dark-bg: #020617;
-            --panel-bg: rgba(15, 23, 42, 0.95);
+            --gold: #c9a84c;
+            --gold-bright: #f0d060;
+            --crimson: #8b0000;
+            --crimson-bright: #cc1111;
+            --navy: #020610;
+            --panel: rgba(4,10,26,0.97);
+            --glass: rgba(255,255,255,0.03);
+            --border-gold: rgba(201,168,76,0.25);
+            --border-dim: rgba(255,255,255,0.07);
         }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--navy); color: #ddd8c8; font-family: 'Rajdhani', sans-serif; overflow: hidden; height: 100vh; width: 100vw; }
+        .mono { font-family: 'Share Tech Mono', monospace; }
+        .display { font-family: 'Bebas Neue', cursive; }
 
-        body {
-            background-color: var(--dark-bg);
-            color: #f8fafc;
-            font-family: 'Cairo', sans-serif;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            height: 100vh;
+        /* SCANLINES */
+        body::after {
+            content: '';
+            position: fixed; inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.07) 3px, rgba(0,0,0,0.07) 4px);
+            pointer-events: none; z-index: 9999;
         }
+        /* GRID */
+        .grid-overlay {
+            position: fixed; inset: 0;
+            background-image: linear-gradient(rgba(201,168,76,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(201,168,76,0.035) 1px, transparent 1px);
+            background-size: 44px 44px; pointer-events: none; z-index: 0;
+        }
+        /* CORNERS */
+        .corner-tl, .corner-tr, .corner-bl, .corner-br { position: absolute; width: 18px; height: 18px; border-color: var(--gold); border-style: solid; opacity: 0.4; }
+        .corner-tl { top: 10px; left: 10px; border-width: 2px 0 0 2px; }
+        .corner-tr { top: 10px; right: 10px; border-width: 2px 2px 0 0; }
+        .corner-bl { bottom: 10px; left: 10px; border-width: 0 0 2px 2px; }
+        .corner-br { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
 
-        .fbi-grid-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 25px 25px;
-        }
+        .glass-card { background: var(--panel); border: 1px solid var(--border-gold); border-radius: 4px; box-shadow: 0 0 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(201,168,76,0.1); position: relative; }
+        .fbi-input { width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(201,168,76,0.2); border-radius: 3px; padding: 12px 16px; color: #e8e4d8; font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s; letter-spacing: 0.05em; }
+        .fbi-input:focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(201,168,76,0.1); }
+        .fbi-input::placeholder { color: #333; letter-spacing: 0.1em; }
+        select.fbi-input option { background: #0a0f1e; color: #e8e4d8; }
+        textarea.fbi-input { resize: none; }
 
-        .glass-container {
-            background: var(--panel-bg);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
+        .btn-gold { background: linear-gradient(135deg, #7a5e20, #c9a84c, #7a5e20); color: #0a0f1e; font-family: 'Bebas Neue', cursive; letter-spacing: 0.25em; font-size: 1rem; padding: 12px 24px; border: none; border-radius: 3px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 20px rgba(201,168,76,0.2); }
+        .btn-gold:hover { box-shadow: 0 4px 30px rgba(201,168,76,0.4); filter: brightness(1.1); }
+        .btn-gold:active { transform: scale(0.97); }
+        .btn-red { background: linear-gradient(135deg, #5a0000, #8b0000, #5a0000); color: #ffcdd2; font-family: 'Bebas Neue', cursive; letter-spacing: 0.25em; font-size: 1rem; padding: 12px 24px; border: none; border-radius: 3px; cursor: pointer; transition: all 0.2s; }
+        .btn-red:hover { filter: brightness(1.2); }
+        .btn-ghost { background: transparent; color: var(--gold); font-family: 'Bebas Neue', cursive; letter-spacing: 0.2em; font-size: 0.9rem; padding: 10px 18px; border: 1px solid var(--border-gold); border-radius: 3px; cursor: pointer; transition: all 0.2s; }
+        .btn-ghost:hover { background: rgba(201,168,76,0.08); border-color: var(--gold); }
 
-        .fbi-input-field {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 14px 18px;
-            color: #ffffff;
-            width: 100%;
-            outline: none;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+        @keyframes scanDown { 0% { transform:translateY(-100%); opacity:0.5; } 100% { transform:translateY(100vh); opacity:0; } }
+        @keyframes sealPulse { 0%,100% { filter:drop-shadow(0 0 20px rgba(201,168,76,0.3)); } 50% { filter:drop-shadow(0 0 45px rgba(201,168,76,0.6)); } }
+        @keyframes pulseAnim { 0% { box-shadow:0 0 0 0 rgba(22,163,74,0.5); } 50% { box-shadow:0 0 0 6px rgba(22,163,74,0); } 100% { box-shadow:0 0 0 0 rgba(22,163,74,0); } }
+        @keyframes ticker { from { transform:translateX(100%); } to { transform:translateX(-200%); } }
 
-        .fbi-input-field:focus {
-            border-color: var(--fbi-gold);
-            box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
-        }
+        .scan-line { position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,rgba(201,168,76,0.3),transparent); animation:scanDown 4s linear infinite; pointer-events:none; z-index:10; }
+        .animate-fade-up { animation: fadeUp 0.5s ease forwards; }
+        .pulse-dot { width:8px; height:8px; border-radius:50%; background:#16a34a; box-shadow:0 0 0 0 rgba(22,163,74,0.5); animation:pulseAnim 2s ease-in-out infinite; }
+        .ticker-inner { display:inline-block; animation:ticker 30s linear infinite; white-space:nowrap; }
 
-        .fbi-button-primary {
-            background-color: var(--fbi-blue);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-weight: 900;
-            text-transform: uppercase;
-            transition: transform 0.2s, background-color 0.2s;
-            cursor: pointer;
-        }
+        .bottom-nav { background:rgba(2,6,16,0.98); border-top:1px solid var(--border-gold); }
+        .nav-item { display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; padding:8px 10px; border-radius:4px; transition:all 0.2s; position:relative; }
+        .nav-item.active { color:var(--gold-bright); }
+        .nav-item.active::after { content:''; position:absolute; bottom:-1px; left:20%; width:60%; height:2px; background:var(--gold); border-radius:2px 2px 0 0; }
+        .nav-item:not(.active) { color:#2a2a3a; }
 
-        .fbi-button-primary:active {
-            transform: scale(0.96);
-        }
+        .badge { font-family:'Share Tech Mono',monospace; font-size:0.6rem; padding:3px 8px; border-radius:2px; letter-spacing:0.15em; text-transform:uppercase; }
+        .badge-open   { background:rgba(180,30,30,0.15); color:#f87171; border:1px solid rgba(180,30,30,0.3); }
+        .badge-closed { background:rgba(30,160,80,0.12); color:#4ade80; border:1px solid rgba(30,160,80,0.25); }
+        .badge-gold   { background:rgba(201,168,76,0.12); color:var(--gold); border:1px solid var(--border-gold); }
 
-        .nav-icon-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            transition: color 0.3s ease;
-            cursor: pointer;
-        }
+        .data-row { background:var(--glass); border:1px solid var(--border-dim); border-left:3px solid var(--gold); border-radius:3px; padding:14px 16px; transition:background 0.2s; }
+        .data-row:hover { background:rgba(201,168,76,0.04); }
+        .data-row-red { border-left-color:var(--crimson-bright); }
 
-        .nav-icon-label {
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-        }
+        .stat-card { background:var(--glass); border:1px solid var(--border-dim); border-radius:3px; padding:18px 16px; position:relative; overflow:hidden; }
+        .stat-card::before { content:''; position:absolute; top:0; left:0; width:3px; height:100%; }
+        .stat-card.blue::before { background:#1d4ed8; }
+        .stat-card.red::before  { background:var(--crimson-bright); }
+        .stat-card.gold::before { background:var(--gold); }
+        .stat-card.green::before { background:#16a34a; }
 
-        .agent-identity-tag {
-            background: rgba(30, 64, 175, 0.2);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            padding: 4px 12px;
-            border-radius: 8px;
-            font-size: 10px;
-            font-weight: 700;
-            color: #93c5fd;
-        }
+        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.88); backdrop-filter:blur(12px); z-index:500; display:flex; align-items:center; justify-content:center; padding:20px; animation:fadeIn 0.2s ease; }
 
-        .case-status-badge {
-            font-size: 9px;
-            font-weight: 900;
-            padding: 4px 10px;
-            border-radius: 6px;
-            text-transform: uppercase;
-        }
+        .wanted-img { width:100%; height:180px; object-fit:cover; filter:grayscale(30%) contrast(1.1); border-bottom:3px solid var(--crimson-bright); }
+        .chat-bubble { max-width:75%; padding:9px 13px; border-radius:4px; font-size:0.85rem; line-height:1.5; }
+        .chat-bubble.mine   { background:rgba(29,78,216,0.25); border:1px solid rgba(29,78,216,0.3); margin-left:auto; border-bottom-right-radius:0; }
+        .chat-bubble.theirs { background:rgba(255,255,255,0.05); border:1px solid var(--border-dim); border-bottom-left-radius:0; }
+        .log-entry { font-family:'Share Tech Mono',monospace; font-size:0.72rem; color:#2a3a2a; padding:7px 12px; border-bottom:1px solid rgba(255,255,255,0.03); letter-spacing:0.05em; }
+        .log-entry .t { color:var(--gold); }
+        .log-entry .u { color:#2a4a3a; }
+        .log-entry .a { color:#2a3a4a; }
 
-        .wanted-poster-frame {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-bottom: 4px solid var(--fbi-red);
-        }
+        .progress-bar { height:3px; background:rgba(201,168,76,0.1); border-radius:2px; overflow:hidden; }
+        .progress-fill { height:100%; background:linear-gradient(90deg,var(--gold),var(--gold-bright)); border-radius:2px; transition:width 1s ease; }
 
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-
-        /* Animations */
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .animate-slide-up {
-            animation: slideUp 0.5s ease-out;
-        }
+        ::-webkit-scrollbar { width:3px; }
+        ::-webkit-scrollbar-track { background:transparent; }
+        ::-webkit-scrollbar-thumb { background:var(--border-gold); border-radius:2px; }
+        .divider { border:none; border-top:1px solid var(--border-dim); margin:14px 0; }
+        .hero-title { font-family:'Bebas Neue',cursive; font-size:clamp(2.8rem,9vw,7rem); line-height:0.88; letter-spacing:0.06em; background:linear-gradient(180deg,#f2c84a 0%,#c9a84c 45%,#7a5e20 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+        .classified-stripe { background:repeating-linear-gradient(-50deg,#8b0000,#8b0000 8px,#111 8px,#111 16px); }
     </style>
 </head>
 <body>
-    <div class="fbi-grid-overlay"></div>
-    <div id="root"></div>
+<div class="grid-overlay"></div>
+<div id="root"></div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, setDoc, doc, deleteDoc, query, orderBy, addDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
-        
-        const firebaseConfig = { 
-            apiKey: "AIzaSyCYgffN2dA7IILMbI2i_1YfERkKWIrpHyA", 
-            authDomain: "ek-police.firebaseapp.com", 
-            projectId: "ek-police", 
-            storageBucket: "ek-police.firebasestorage.app", 
-            messagingSenderId: "300605258409", 
-            appId: "1:300605258409:web:f265025ffa5592f651c7b8" 
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        
-        // Export to window for React use
-        window.fbDB = db;
-        window.fbTools = { collection, onSnapshot, setDoc, doc, deleteDoc, query, orderBy, addDoc, updateDoc, serverTimestamp };
-    </script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, setDoc, doc, deleteDoc, query, orderBy, addDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+    const firebaseConfig = { apiKey:"AIzaSyCYgffN2dA7IILMbI2i_1YfERkKWIrpHyA", authDomain:"ek-police.firebaseapp.com", projectId:"ek-police", storageBucket:"ek-police.firebasestorage.app", messagingSenderId:"300605258409", appId:"1:300605258409:web:f265025ffa5592f651c7b8" };
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+    window.fbDB    = db;
+    window.fbTools = { collection, onSnapshot, setDoc, doc, deleteDoc, query, orderBy, addDoc, updateDoc, serverTimestamp };
+</script>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
 
-        // Configuration Arrays
-        const FBI_RANKS = [
-            "Director", 
-            "Deputy Director", 
-            "Associate Deputy Director", 
-            "Executive Assistant Director", 
-            "Assistant Director", 
-            "Deputy Assistant Director", 
-            "Special Agent in Charge – SAC", 
-            "Assistant Special Agent in Charge – ASAC", 
-            "Supervisory Special Agent – SSA", 
-            "Senior Special Agent", 
-            "Special Agent"
-        ];
+const FBI_RANKS = ["Director","Deputy Director","Associate Deputy Director","Executive Assistant Director","Assistant Director","Deputy Assistant Director","Special Agent in Charge (SAC)","Assistant Special Agent in Charge (ASAC)","Supervisory Special Agent (SSA)","Senior Special Agent","Special Agent"];
+const TICKER = "⬛ CLASSIFIED CHANNEL ACTIVE — ALL TRANSMISSIONS MONITORED — UNAUTHORIZED ACCESS WILL BE PROSECUTED — FBI CENTRAL INTELLIGENCE DIVISION — SECURE UPLINK ESTABLISHED ⬛";
 
-        const App = () => {
-            // Application State
-            const [currentUser, setCurrentUser] = useState(null);
-            const [activeView, setActiveView] = useState('login');
-            const [allUsers, setAllUsers] = useState([]);
-            const [allWanted, setAllWanted] = useState([]);
-            const [allCases, setAllCases] = useState([]);
-            const [allCivilians, setAllCivilians] = useState([]);
-            const [activeModal, setActiveModal] = useState(null);
-            const [itemToEdit, setItemToEdit] = useState(null);
-            const [searchQuery, setSearchQuery] = useState("");
+const Corners = () => (<><div className="corner-tl"/><div className="corner-tr"/><div className="corner-bl"/><div className="corner-br"/></>);
+const ScanLine = () => <div className="scan-line"/>;
+const Divider = () => <hr className="divider"/>;
+const PulseDot = ({color='#16a34a'}) => <div style={{width:8,height:8,borderRadius:'50%',background:color,boxShadow:`0 0 0 0 ${color}80`,animation:'pulseAnim 2s ease-in-out infinite'}}/>;
+const Ticker = () => (
+    <div style={{overflow:'hidden',background:'rgba(0,0,0,0.5)',borderTop:'1px solid rgba(201,168,76,0.1)',borderBottom:'1px solid rgba(201,168,76,0.1)',padding:'4px 0'}}>
+        <p className="ticker-inner mono" style={{color:'#253525',fontSize:'0.55rem',letterSpacing:'0.08em'}}>{TICKER} &nbsp;&nbsp;&nbsp; {TICKER}</p>
+    </div>
+);
 
-            // Data Synchronization
-            useEffect(() => {
-                if (!window.fbTools) return;
+const App = () => {
+    const [screen,       setScreen]       = useState('home');
+    const [activeTab,    setActiveTab]    = useState('dashboard');
+    const [activeModal,  setActiveModal]  = useState(null);
+    const [itemToEdit,   setItemToEdit]   = useState(null);
+    const [currentUser,  setCurrentUser]  = useState(null);
+    const [searchQuery,  setSearchQuery]  = useState('');
+    const [chatMsg,      setChatMsg]      = useState('');
+    const [chatLog,      setChatLog]      = useState([]);
+    const [activityLog,  setActivityLog]  = useState([]);
+    const [loginError,   setLoginError]   = useState('');
+    const [loginLoading, setLoginLoading] = useState(false);
+    const [allUsers,     setAllUsers]     = useState([]);
+    const [allWanted,    setAllWanted]    = useState([]);
+    const [allCases,     setAllCases]     = useState([]);
+    const [allCivilians, setAllCivilians] = useState([]);
+    const chatEndRef = useRef(null);
 
-                const db = window.fbDB;
-                const tools = window.fbTools;
+    useEffect(() => {
+        if (!window.fbTools) return;
+        const db = window.fbDB, T = window.fbTools;
+        const u1 = T.onSnapshot(T.collection(db,'users'),     s => setAllUsers(s.docs.map(d=>({...d.data(),id:d.id}))));
+        const u2 = T.onSnapshot(T.collection(db,'wanted'),    s => setAllWanted(s.docs.map(d=>({...d.data(),id:d.id}))));
+        const u3 = T.onSnapshot(T.collection(db,'civilians'), s => setAllCivilians(s.docs.map(d=>({...d.data(),id:d.id}))));
+        const q  = T.query(T.collection(db,'fbi_cases'),T.orderBy('createdAt','desc'));
+        const u4 = T.onSnapshot(q, s => setAllCases(s.docs.map(d=>({...d.data(),id:d.id}))));
+        return () => { u1(); u2(); u3(); u4(); };
+    }, []);
 
-                const unsubUsers = tools.onSnapshot(tools.collection(db, "users"), (snapshot) => {
-                    const usersList = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-                    setAllUsers(usersList);
-                });
+    useEffect(() => { chatEndRef.current?.scrollIntoView({behavior:'smooth'}); }, [chatLog]);
 
-                const unsubWanted = tools.onSnapshot(tools.collection(db, "wanted"), (snapshot) => {
-                    const wantedList = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-                    setAllWanted(wantedList);
-                });
+    const addLog = (action) => {
+        const now = new Date();
+        setActivityLog(prev => [{ time:now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'}), action, user:currentUser?.name||'SYSTEM' }, ...prev].slice(0,50));
+    };
 
-                const unsubCivilians = tools.onSnapshot(tools.collection(db, "civilians"), (snapshot) => {
-                    const civList = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-                    setAllCivilians(civList);
-                });
+    const doLogin = () => {
+        const email = document.getElementById('auth_email').value.trim();
+        const pass  = document.getElementById('auth_password').value.trim();
+        setLoginError(''); setLoginLoading(true);
+        setTimeout(() => {
+            if (email === 'admin@fbi.gov' && pass === '123456') {
+                const admin = { name:'System Administrator', rank:'Director', access:'command', id:'admin@fbi.gov' };
+                setCurrentUser(admin); setScreen('app'); setLoginLoading(false);
+                setTimeout(() => addLog('Authenticated — Director access granted'), 100);
+                return;
+            }
+            const match = allUsers.find(u => u.id === email && u.password === pass);
+            if (match) {
+                setCurrentUser(match); setScreen('app'); setLoginLoading(false);
+                setTimeout(() => addLog(`Authenticated — ${match.rank} access granted`), 100);
+            } else {
+                setLoginError('ACCESS DENIED — INVALID CREDENTIALS'); setLoginLoading(false);
+            }
+        }, 1200);
+    };
 
-                const qCases = tools.query(tools.collection(db, "fbi_cases"), tools.orderBy("createdAt", "desc"));
-                const unsubCases = tools.onSnapshot(qCases, (snapshot) => {
-                    const casesList = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
-                    setAllCases(casesList);
-                });
+    const doLogout = () => { addLog('Session terminated'); setCurrentUser(null); setScreen('home'); setActiveTab('dashboard'); };
+    const isPrivileged = currentUser?.access === 'command';
 
-                return () => {
-                    unsubUsers();
-                    unsubWanted();
-                    unsubCivilians();
-                    unsubCases();
-                };
-            }, []);
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        const db = window.fbDB, T = window.fbTools;
+        const colMap = { case_form:'fbi_cases', wanted_form:'wanted', civilian_form:'civilians', staff_form:'users' };
+        const col = colMap[activeModal];
+        try {
+            if (activeModal === 'civilian_form' && !itemToEdit) {
+                const dup = allCivilians.find(c => c.sonyId === data.sonyId);
+                if (dup) { alert(`ERROR: ID ${data.sonyId} already registered to ${dup.name}`); return; }
+            }
+            if (itemToEdit) {
+                await T.updateDoc(T.doc(db,col,itemToEdit.id), {...data, lastModifiedBy:currentUser.name});
+                addLog(`Record updated — ${col}`);
+            } else {
+                const rec = {...data, author:currentUser.name, authorRank:currentUser.rank, createdAt:T.serverTimestamp()};
+                if (col === 'users') await T.setDoc(T.doc(db,col,data.id), rec);
+                else await T.addDoc(T.collection(db,col), rec);
+                addLog(`New record — ${col}`);
+            }
+            setActiveModal(null); setItemToEdit(null);
+        } catch(err) { alert('Database error: '+err.message); }
+    };
 
-            // Auth Logic
-            const executeLogin = () => {
-                const emailInput = document.getElementById('auth_email').value;
-                const passwordInput = document.getElementById('auth_password').value;
+    const deleteEntry = async (col, id) => {
+        if (!window.confirm('Confirm permanent deletion?')) return;
+        await window.fbTools.deleteDoc(window.fbTools.doc(window.fbDB,col,id));
+        addLog(`Deleted record — ${col}`);
+    };
 
-                if (emailInput === "admin@fbi.gov" && passwordInput === "123456") {
-                    const adminSession = { 
-                        name: "System Administrator", 
-                        rank: "Director", 
-                        access: "command", 
-                        id: "admin@fbi.gov" 
-                    };
-                    setCurrentUser(adminSession);
-                    setActiveView('dashboard');
-                    return;
-                }
+    const sendChat = () => {
+        if (!chatMsg.trim()) return;
+        setChatLog(prev => [...prev, {from:currentUser.name, msg:chatMsg.trim(), time:new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}]);
+        setChatMsg('');
+    };
 
-                const matchedUser = allUsers.find(u => u.id === emailInput && u.password === passwordInput);
-                if (matchedUser) {
-                    setCurrentUser(matchedUser);
-                    setActiveView('dashboard');
-                } else {
-                    alert("ACCESS DENIED: INVALID CREDENTIALS");
-                }
-            };
-
-            const isPrivileged = currentUser && currentUser.access === 'command';
-
-            // Data Operations
-            const handleFormSubmission = async (event) => {
-                event.preventDefault();
-                const formData = new FormData(event.target);
-                const dataValues = Object.fromEntries(formData);
-                const db = window.fbDB;
-                const tools = window.fbTools;
-
-                let collectionName = "";
-                if (activeModal === 'case_form') collectionName = "fbi_cases";
-                if (activeModal === 'wanted_form') collectionName = "wanted";
-                if (activeModal === 'civilian_form') collectionName = "civilians";
-                if (activeModal === 'staff_form') collectionName = "users";
-
-                try {
-                    // Check for Existing Civilian ID
-                    if (activeModal === 'civilian_form' && !itemToEdit) {
-                        const duplicate = allCivilians.find(c => c.sonyId === dataValues.sonyId);
-                        if (duplicate) {
-                            alert(`خطأ: رقم الهوية (${dataValues.sonyId}) مسجل مسبقاً باسم ${duplicate.name}`);
-                            return;
-                        }
-                    }
-
-                    if (itemToEdit) {
-                        // Update Existing Record
-                        const recordRef = tools.doc(db, collectionName, itemToEdit.id);
-                        await tools.updateDoc(recordRef, {
-                            ...dataValues,
-                            lastModifiedBy: currentUser.name,
-                            lastModifiedRank: currentUser.rank
-                        });
-                    } else {
-                        // Create New Record
-                        const newRecord = {
-                            ...dataValues,
-                            author: currentUser.name,
-                            authorRank: currentUser.rank,
-                            createdAt: tools.serverTimestamp()
-                        };
-
-                        if (collectionName === "users") {
-                            await tools.setDoc(tools.doc(db, collectionName, dataValues.id), newRecord);
-                        } else {
-                            await tools.addDoc(tools.collection(db, collectionName), newRecord);
-                        }
-                    }
-
-                    setActiveModal(null);
-                    setItemToEdit(null);
-                } catch (error) {
-                    console.error("Database Error:", error);
-                    alert("حدث خطأ أثناء معالجة البيانات");
-                }
-            };
-
-            const deleteEntry = async (col, id) => {
-                if (window.confirm("هل أنت متأكد من حذف هذا السجل بشكل نهائي؟")) {
-                    await window.fbTools.deleteDoc(window.fbTools.doc(window.fbDB, col, id));
-                }
-            };
-
-            // Views Components
-            const LoginScreen = () => (
-                <div className="h-screen flex items-center justify-center p-6 bg-slate-950">
-                    <div className="w-full max-w-md glass-container p-10 text-center animate-slide-up border-t-4 border-blue-600">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Seal_of_the_Federal_Bureau_of_Investigation.svg" className="w-24 h-24 mx-auto mb-8" alt="FBI SEAL" />
-                        <h1 className="text-2xl font-black tracking-widest mb-2">FBI ACCESS TERMINAL</h1>
-                        <p className="text-gray-500 text-[10px] uppercase mb-10 tracking-[4px]">Classified Information System</p>
-                        
-                        <div className="space-y-4">
-                            <input id="auth_email" type="text" placeholder="البريد الإلكتروني للعميل" className="fbi-input-field text-center" />
-                            <input id="auth_password" type="password" placeholder="رمز الدخول السري" className="fbi-input-field text-center" />
-                            <button onClick={executeLogin} className="w-full fbi-button-primary mt-4">دخول النظام</button>
-                        </div>
+    /* ─── HOME ─── */
+    if (screen === 'home') return (
+        <div style={{background:'radial-gradient(ellipse at 15% 50%, rgba(139,0,0,0.18) 0%, transparent 55%), linear-gradient(180deg,#010308 0%,#04091a 60%,#010308 100%)', minHeight:'100vh', display:'flex', flexDirection:'column', overflow:'hidden', position:'relative'}}>
+            <ScanLine/>
+            <Ticker/>
+            {/* top bar */}
+            <div style={{background:'rgba(2,6,16,0.98)', borderBottom:'1px solid var(--border-gold)', padding:'12px 20px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                <div style={{display:'flex', alignItems:'center', gap:12}}>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Seal_of_the_Federal_Bureau_of_Investigation.svg" style={{width:28,height:28,opacity:0.75}} alt="seal"/>
+                    <div>
+                        <p className="mono" style={{color:'var(--gold)',fontSize:'0.55rem',letterSpacing:'0.22em'}}>FEDERAL BUREAU OF INVESTIGATION</p>
+                        <p className="mono" style={{color:'#1a2a1a',fontSize:'0.48rem',letterSpacing:'0.15em'}}>CLASSIFIED INTELLIGENCE NETWORK — TERMINAL v4.1</p>
                     </div>
                 </div>
-            );
-
-            // Sub-views
-            const DashboardView = () => (
-                <div className="animate-slide-up space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="glass-container p-6 border-r-4 border-blue-600">
-                            <h5 className="text-[10px] font-black text-gray-500 uppercase">قضايا نشطة</h5>
-                            <p className="text-3xl font-black mt-1">{allCases.length}</p>
-                        </div>
-                        <div className="glass-container p-6 border-r-4 border-red-600">
-                            <h5 className="text-[10px] font-black text-gray-500 uppercase">مطلوبين خطرين</h5>
-                            <p className="text-3xl font-black mt-1">{allWanted.length}</p>
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center px-1">
-                            <h2 className="text-lg font-black uppercase tracking-tighter">سجل القضايا المركزية</h2>
-                            <button onClick={() => setActiveModal('case_form')} className="bg-blue-600 px-4 py-2 rounded-lg text-[10px] font-black">+ فتح قضية</button>
-                        </div>
-
-                        {allCases.map(c => (
-                            <div key={c.id} className="glass-container p-6 border-l-4 border-blue-500 hover:bg-slate-800/50 transition">
-                                <div className="flex justify-between items-start mb-4">
-                                    <div>
-                                        <h3 className="text-lg font-black">{c.title}</h3>
-                                        <div className="flex gap-2 mt-2">
-                                            <span className="agent-identity-tag">المحقق: {c.author}</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col items-end gap-2">
-                                        <span className={`case-status-badge ${c.status === 'Open' ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500'}`}>
-                                            {c.status === 'Open' ? 'قيد التحقيق' : 'قضية مغلقة'}
-                                        </span>
-                                        <button onClick={() => { setItemToEdit(c); setActiveModal('case_form'); }} className="text-[10px] text-blue-400 font-bold underline">تغيير الحالة</button>
-                                    </div>
-                                </div>
-                                <p className="text-xs text-gray-400 leading-relaxed mb-4">{c.details}</p>
-                                <div className="text-[10px] bg-black/40 p-3 rounded-lg border border-white/5">
-                                    <span className="text-blue-400 font-bold">المشتبه بهم:</span> {c.suspects}
-                                </div>
-                                {isPrivileged && (
-                                    <button onClick={() => deleteEntry('fbi_cases', c.id)} className="mt-4 text-[10px] text-red-500/50 hover:text-red-500"><i className="fas fa-trash-alt mr-1"></i> حذف من الأرشيف</button>
-                                )}
-                            </div>
-                        ))}
-                    </div>
+                <div style={{display:'flex',alignItems:'center',gap:8}}>
+                    <PulseDot/>
+                    <span className="mono" style={{color:'#1a3a1a',fontSize:'0.5rem',letterSpacing:'0.1em'}}>UPLINK ACTIVE</span>
                 </div>
-            );
-
-            const WantedView = () => (
-                <div className="animate-slide-up space-y-6">
-                    <div className="flex justify-between items-center px-1">
-                        <h2 className="text-lg font-black text-red-600 uppercase">الأهداف المطلوبة</h2>
-                        <button onClick={() => setActiveModal('wanted_form')} className="bg-red-600 px-4 py-2 rounded-lg text-[10px] font-black">إضافة مطلوب</button>
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {allWanted.map(w => (
-                            <div key={w.id} className="glass-container overflow-hidden border-b-4 border-red-600">
-                                <img src={w.image} className="wanted-poster-frame" alt="Wanted" />
-                                <div className="p-5">
-                                    <h3 className="text-xl font-black">{w.name}</h3>
-                                    <p className="text-xs text-red-400 font-bold mt-1 tracking-wider uppercase">{w.charge}</p>
-                                    <div className="flex justify-between items-center mt-5 pt-3 border-t border-white/5">
-                                        <span className="agent-identity-tag text-[9px]">أضيف بواسطة: {w.author}</span>
-                                        {isPrivileged && <button onClick={() => deleteEntry('wanted', w.id)} className="text-red-600 opacity-50"><i className="fas fa-trash-alt"></i></button>}
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+            </div>
+            {/* hero */}
+            <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'0 24px',textAlign:'center',animation:'fadeUp 0.8s ease both'}}>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Seal_of_the_Federal_Bureau_of_Investigation.svg"
+                     style={{width:110,height:110,marginBottom:28,animation:'sealPulse 4s ease-in-out infinite',filter:'drop-shadow(0 0 25px rgba(201,168,76,0.4))'}} alt="FBI Seal"/>
+                <p className="mono" style={{color:'#2a3a2a',letterSpacing:'0.5em',fontSize:'0.6rem',marginBottom:16}}>CENTRAL INTELLIGENCE DIVISION</p>
+                <h1 className="hero-title" style={{marginBottom:12}}>WE SEE<br/>WHAT OTHERS<br/>DON'T</h1>
+                <div className="classified-stripe" style={{padding:'5px 20px',margin:'20px 0'}}>
+                    <span className="display" style={{letterSpacing:'0.3em',fontSize:'0.85rem',color:'white'}}>TOP SECRET // SCI // NOFORN</span>
                 </div>
-            );
-
-            const CivilianView = () => (
-                <div className="animate-slide-up space-y-6">
-                    <div className="flex justify-between items-center px-1">
-                        <h2 className="text-lg font-black uppercase">قاعدة بيانات المواطنين</h2>
-                        <button onClick={() => setActiveModal('civilian_form')} className="bg-blue-600 px-4 py-2 rounded-lg text-[10px] font-black">+ تسجيل مواطن</button>
-                    </div>
-                    <div className="relative">
-                        <i className="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"></i>
-                        <input 
-                            placeholder="بحث بالاسم أو رقم الهوية..." 
-                            className="fbi-input-field pl-12"
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-                    <div className="space-y-3">
-                        {allCivilians.filter(c => c.name.includes(searchQuery) || c.sonyId.includes(searchQuery)).map(c => (
-                            <div key={c.id} className="glass-container p-5 border-r-4 border-blue-500">
-                                <div className="flex justify-between items-center">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center text-blue-500 font-black">{c.name[0]}</div>
-                                        <div>
-                                            <h4 className="font-bold text-sm">{c.name}</h4>
-                                            <p className="text-[10px] text-gray-500 uppercase">رقم الهوية: {c.sonyId}</p>
-                                        </div>
-                                    </div>
-                                    {isPrivileged && (
-                                        <div className="flex gap-2">
-                                            <button onClick={() => { setItemToEdit(c); setActiveModal('civilian_form'); }} className="p-2 text-blue-400 hover:bg-blue-400/10 rounded-lg transition"><i className="fas fa-edit"></i></button>
-                                            <button onClick={() => deleteEntry('civilians', c.id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition"><i className="fas fa-trash-alt"></i></button>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="mt-4 flex gap-2">
-                                    <button onClick={() => { setItemToEdit({ suspects: c.name }); setActiveModal('case_form'); }} className="flex-1 bg-red-900/20 text-red-500 border border-red-500/20 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-900/40">إصدار مذكرة جنائية</button>
-                                </div>
-                                <div className="mt-3 text-[8px] text-gray-600 text-left">تسجيل المحقق: {c.author}</div>
-                            </div>
-                        ))}
-                    </div>
+                <p className="mono" style={{color:'#2a2a40',fontSize:'0.65rem',letterSpacing:'0.2em',marginBottom:32,maxWidth:280,lineHeight:1.8}}>AUTHORIZED PERSONNEL ONLY<br/>ALL ACTIVITY IS LOGGED AND MONITORED</p>
+                <div style={{display:'flex',flexDirection:'column',gap:12,width:'100%',maxWidth:300}}>
+                    <button className="btn-gold" style={{width:'100%'}} onClick={() => setScreen('login')}>
+                        <i className="fas fa-shield-halved" style={{marginRight:10}}/> ENTER SYSTEM
+                    </button>
+                    <button className="btn-ghost" style={{width:'100%'}} onClick={() => setScreen('login')}>
+                        <i className="fas fa-lock" style={{marginRight:8}}/> CLASSIFIED ACCESS
+                    </button>
                 </div>
-            );
+            </div>
+            <div style={{padding:'12px 24px',borderTop:'1px solid rgba(255,255,255,0.04)',display:'flex',justifyContent:'space-between'}}>
+                <span className="mono" style={{color:'#111',fontSize:'0.5rem',letterSpacing:'0.12em'}}>DOJ // FBI // INTEL DIVISION</span>
+                <span className="mono" style={{color:'#111',fontSize:'0.5rem',letterSpacing:'0.12em'}}>{new Date().toUTCString().toUpperCase()}</span>
+            </div>
+        </div>
+    );
 
-            const StaffView = () => (
-                <div className="animate-slide-up space-y-6">
-                    <h2 className="text-lg font-black text-yellow-500 uppercase px-1">إدارة الكادر الفيدرالي</h2>
-                    {isPrivileged ? (
-                        <>
-                            <div className="space-y-3">
-                                {allUsers.map(u => (
-                                    <div key={u.id} className="glass-container p-5 flex justify-between items-center border-l-4 border-yellow-500">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 bg-slate-900 border border-yellow-500/20 rounded-lg flex items-center justify-center text-yellow-500">
-                                                <i className={u.access === 'command' ? 'fas fa-shield-halved' : 'fas fa-user-shield'}></i>
-                                            </div>
-                                            <div>
-                                                <h4 className="font-bold text-sm">{u.name}</h4>
-                                                <p className="text-[10px] text-gray-500 uppercase font-black tracking-wider">{u.rank}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-3">
-                                            <button onClick={() => { setItemToEdit(u); setActiveModal('staff_form'); }} className="text-blue-500"><i className="fas fa-user-pen"></i></button>
-                                            {u.id !== "admin@fbi.gov" && <button onClick={() => deleteEntry('users', u.id)} className="text-red-900"><i className="fas fa-user-slash"></i></button>}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                            <button onClick={() => setActiveModal('staff_form')} className="w-full bg-yellow-600 py-4 rounded-xl font-black text-xs uppercase tracking-widest text-black">تعيين عميل جديد</button>
-                        </>
-                    ) : (
-                        <div className="text-center p-20 glass-container">
-                            <i className="fas fa-lock text-4xl text-red-600 mb-4"></i>
-                            <h3 className="font-black">غير مصرح لك بالدخول</h3>
-                            <p className="text-xs text-gray-500 mt-2 uppercase tracking-widest">Command Access Required</p>
+    /* ─── LOGIN ─── */
+    if (screen === 'login') return (
+        <div style={{height:'100vh',width:'100vw',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:24,background:'radial-gradient(ellipse at center,#040b20 0%,#020610 100%)',animation:'fadeIn 0.4s ease'}}>
+            <ScanLine/>
+            <div className="glass-card" style={{width:'100%',maxWidth:400,padding:32,animation:'fadeUp 0.5s ease'}}>
+                <Corners/>
+                <ScanLine/>
+                <div style={{textAlign:'center',marginBottom:28}}>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Seal_of_the_Federal_Bureau_of_Investigation.svg"
+                         style={{width:64,height:64,margin:'0 auto 16px',filter:'drop-shadow(0 0 20px rgba(201,168,76,0.4))'}} alt="seal"/>
+                    <h2 className="display" style={{letterSpacing:'0.25em',fontSize:'1.3rem',color:'var(--gold)',marginBottom:4}}>FBI ACCESS TERMINAL</h2>
+                    <p className="mono" style={{color:'#223',fontSize:'0.55rem',letterSpacing:'0.3em'}}>CLASSIFIED INFORMATION SYSTEM</p>
+                </div>
+                <Divider/>
+                <div style={{display:'flex',flexDirection:'column',gap:16,marginTop:20}}>
+                    <div>
+                        <label className="mono" style={{display:'block',marginBottom:8,color:'#334',fontSize:'0.6rem',letterSpacing:'0.2em'}}>AGENT EMAIL</label>
+                        <input id="auth_email" type="text" placeholder="agent@fbi.gov" className="fbi-input" onKeyDown={e=>e.key==='Enter'&&doLogin()}/>
+                    </div>
+                    <div>
+                        <label className="mono" style={{display:'block',marginBottom:8,color:'#334',fontSize:'0.6rem',letterSpacing:'0.2em'}}>ACCESS CODE</label>
+                        <input id="auth_password" type="password" placeholder="••••••••" className="fbi-input" onKeyDown={e=>e.key==='Enter'&&doLogin()}/>
+                    </div>
+                    {loginError && (
+                        <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 14px',background:'rgba(139,0,0,0.15)',border:'1px solid rgba(139,0,0,0.3)',borderRadius:3}}>
+                            <i className="fas fa-exclamation-triangle" style={{color:'#cc1111',fontSize:'0.75rem'}}/>
+                            <span className="mono" style={{color:'#f87171',fontSize:'0.65rem',letterSpacing:'0.1em'}}>{loginError}</span>
                         </div>
                     )}
+                    <button className="btn-gold" style={{width:'100%',marginTop:8}} onClick={doLogin} disabled={loginLoading}>
+                        {loginLoading ? <><i className="fas fa-circle-notch fa-spin" style={{marginRight:8}}/>AUTHENTICATING...</> : <><i className="fas fa-fingerprint" style={{marginRight:8}}/>AUTHENTICATE</>}
+                    </button>
+                    <button className="btn-ghost" style={{width:'100%'}} onClick={()=>setScreen('home')}>
+                        <i className="fas fa-arrow-left" style={{marginRight:8}}/> BACK
+                    </button>
                 </div>
-            );
+                <Divider/>
+                <p className="mono" style={{textAlign:'center',color:'#112',fontSize:'0.5rem',letterSpacing:'0.2em',marginTop:8}}>UNAUTHORIZED ACCESS IS A FEDERAL OFFENSE — 18 U.S.C. § 1030</p>
+            </div>
+        </div>
+    );
 
-            if (activeView === 'login') return <LoginScreen />;
+    /* ─── TABS ─── */
+    const DashboardTab = () => (
+        <div className="animate-fade-up" style={{display:'flex',flexDirection:'column',gap:16}}>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+                {[
+                    {label:'ACTIVE CASES',   val:allCases.filter(c=>c.status==='Open').length, cls:'blue',  icon:'fa-folder-open'},
+                    {label:'WANTED TARGETS', val:allWanted.length,                              cls:'red',   icon:'fa-crosshairs'},
+                    {label:'CIVILIANS REG.', val:allCivilians.length,                           cls:'gold',  icon:'fa-fingerprint'},
+                    {label:'AGENTS ACTIVE',  val:allUsers.length+1,                             cls:'green', icon:'fa-user-shield'},
+                ].map(s => (
+                    <div key={s.label} className={`stat-card ${s.cls}`}>
+                        <p className="mono" style={{color:'#334',fontSize:'0.55rem',letterSpacing:'0.2em',marginBottom:4}}>{s.label}</p>
+                        <p className="display" style={{fontSize:'2.5rem',color:'#e8e4d8'}}>{s.val}</p>
+                        <i className={`fas ${s.icon}`} style={{position:'absolute',bottom:10,right:12,opacity:0.06,fontSize:'2rem'}}/>
+                    </div>
+                ))}
+            </div>
+            <div className="glass-card" style={{padding:16}}>
+                <Corners/>
+                <p className="mono" style={{color:'#334',fontSize:'0.6rem',letterSpacing:'0.2em',marginBottom:8}}>CASE RESOLUTION RATE</p>
+                <div className="progress-bar">
+                    <div className="progress-fill" style={{width:allCases.length?`${Math.round(allCases.filter(c=>c.status==='Closed').length/allCases.length*100)}%`:'0%'}}/>
+                </div>
+                <p className="mono" style={{textAlign:'right',color:'var(--gold)',fontSize:'0.65rem',marginTop:4}}>
+                    {allCases.length?`${Math.round(allCases.filter(c=>c.status==='Closed').length/allCases.length*100)}%`:'0%'} RESOLVED
+                </p>
+            </div>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <p className="display" style={{fontSize:'1.1rem',color:'var(--gold)',letterSpacing:'0.15em'}}>CASE ARCHIVE</p>
+                <button className="btn-ghost" style={{fontSize:'0.7rem',padding:'6px 14px'}} onClick={()=>setActiveModal('case_form')}>
+                    <i className="fas fa-plus" style={{marginRight:6}}/> NEW CASE
+                </button>
+            </div>
+            {allCases.length===0 && <div style={{textAlign:'center',padding:'40px 0',color:'#223'}}><i className="fas fa-folder-open" style={{fontSize:'2rem',display:'block',marginBottom:12}}/><p className="mono" style={{fontSize:'0.65rem',letterSpacing:'0.2em'}}>NO CASES ON RECORD</p></div>}
+            {allCases.map(c => (
+                <div key={c.id} className={`data-row ${c.status==='Open'?'data-row-red':''}`}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
+                        <h4 style={{fontWeight:700,fontSize:'0.9rem',letterSpacing:'0.05em'}}>{c.title}</h4>
+                        <span className={`badge ${c.status==='Open'?'badge-open':'badge-closed'}`}>{c.status==='Open'?'OPEN':'CLOSED'}</span>
+                    </div>
+                    <p style={{fontSize:'0.8rem',color:'#556',lineHeight:1.6,marginBottom:10}}>{c.details}</p>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                        <span className="badge badge-gold">SUSPECTS: {c.suspects}</span>
+                        <div style={{display:'flex',gap:16}}>
+                            <button className="mono" style={{color:'#334',fontSize:'0.6rem',letterSpacing:'0.1em'}} onClick={()=>{setItemToEdit(c);setActiveModal('case_form');}}>
+                                <i className="fas fa-edit" style={{marginRight:4}}/>EDIT
+                            </button>
+                            {isPrivileged && <button className="mono" style={{color:'#4a1a1a',fontSize:'0.6rem',letterSpacing:'0.1em'}} onClick={()=>deleteEntry('fbi_cases',c.id)}>
+                                <i className="fas fa-trash" style={{marginRight:4}}/>DELETE
+                            </button>}
+                        </div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
 
-            return (
-                <div className="h-screen flex flex-col">
-                    {/* Official FBI Header */}
-                    <header className="p-5 flex justify-between items-center bg-slate-900/60 border-b border-white/5 shadow-2xl">
-                        <div className="flex items-center gap-4">
-                            <div className={`w-3 h-3 rounded-full ${isPrivileged ? 'bg-yellow-500 shadow-[0_0_10px_#fbbf24]' : 'bg-green-500 shadow-[0_0_10px_#22c55e]'}`}></div>
+    const WantedTab = () => (
+        <div className="animate-fade-up" style={{display:'flex',flexDirection:'column',gap:14}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <p className="display" style={{fontSize:'1.1rem',color:'#cc4444',letterSpacing:'0.15em'}}>WANTED TARGETS</p>
+                <button className="btn-red" style={{fontSize:'0.75rem',padding:'7px 14px'}} onClick={()=>setActiveModal('wanted_form')}>
+                    <i className="fas fa-plus" style={{marginRight:6}}/> ADD TARGET
+                </button>
+            </div>
+            {allWanted.length===0 && <div style={{textAlign:'center',padding:'50px 0',color:'#223'}}><i className="fas fa-crosshairs" style={{fontSize:'2.2rem',display:'block',marginBottom:12}}/><p className="mono" style={{fontSize:'0.65rem',letterSpacing:'0.2em'}}>NO TARGETS ON FILE</p></div>}
+            {allWanted.map(w => (
+                <div key={w.id} className="glass-card" style={{overflow:'hidden',borderLeft:'3px solid var(--crimson-bright)'}}>
+                    <img src={w.image} className="wanted-img" alt="wanted" onError={e=>e.target.src='https://placehold.co/400x180/0d0d0d/333?text=NO+PHOTO+AVAILABLE'}/>
+                    <div style={{padding:16}}>
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:4}}>
+                            <h3 style={{fontWeight:700,fontSize:'0.95rem',letterSpacing:'0.06em'}}>{w.name}</h3>
+                            <span className="badge badge-open">WANTED</span>
+                        </div>
+                        <p className="mono" style={{color:'#cc4444',fontSize:'0.65rem',letterSpacing:'0.15em',marginBottom:12}}>{w.charge}</p>
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                            <span className="mono" style={{color:'#223',fontSize:'0.55rem'}}>LOGGED BY: {w.author}</span>
+                            {isPrivileged && <button onClick={()=>deleteEntry('wanted',w.id)} style={{color:'#4a1a1a'}}><i className="fas fa-trash" style={{fontSize:'0.75rem'}}/></button>}
+                        </div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+
+    const CivilianTab = () => (
+        <div className="animate-fade-up" style={{display:'flex',flexDirection:'column',gap:14}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <p className="display" style={{fontSize:'1.1rem',color:'var(--gold)',letterSpacing:'0.15em'}}>CIVILIAN DATABASE</p>
+                <button className="btn-ghost" style={{fontSize:'0.7rem',padding:'6px 14px'}} onClick={()=>setActiveModal('civilian_form')}>
+                    <i className="fas fa-plus" style={{marginRight:6}}/> REGISTER
+                </button>
+            </div>
+            <div style={{position:'relative'}}>
+                <i className="fas fa-search" style={{position:'absolute',left:14,top:'50%',transform:'translateY(-50%)',color:'#223',fontSize:'0.7rem'}}/>
+                <input className="fbi-input" style={{paddingLeft:38}} placeholder="Search by name or ID..." value={searchQuery} onChange={e=>setSearchQuery(e.target.value)}/>
+            </div>
+            {allCivilians.length===0 && <div style={{textAlign:'center',padding:'40px 0',color:'#223'}}><i className="fas fa-fingerprint" style={{fontSize:'2.2rem',display:'block',marginBottom:12}}/><p className="mono" style={{fontSize:'0.65rem',letterSpacing:'0.2em'}}>NO CIVILIANS REGISTERED</p></div>}
+            {allCivilians.filter(c=>c.name?.toLowerCase().includes(searchQuery.toLowerCase())||c.sonyId?.includes(searchQuery)).map(c => (
+                <div key={c.id} className="data-row">
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                        <div style={{display:'flex',alignItems:'center',gap:12}}>
+                            <div style={{width:40,height:40,borderRadius:3,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:'0.9rem',background:'rgba(201,168,76,0.1)',border:'1px solid var(--border-gold)',color:'var(--gold)'}}>{(c.name||'?')[0].toUpperCase()}</div>
                             <div>
-                                <h2 className="text-sm font-black tracking-tight">{currentUser.name}</h2>
-                                <p className="text-[10px] text-yellow-500 font-black mt-0.5 uppercase tracking-wider">{currentUser.rank}</p>
+                                <p style={{fontWeight:600,fontSize:'0.85rem'}}>{c.name}</p>
+                                <p className="mono" style={{color:'#334',fontSize:'0.6rem',letterSpacing:'0.1em'}}>ID: {c.sonyId}</p>
                             </div>
                         </div>
-                        <button onClick={() => setActiveView('login')} className="bg-red-600/10 text-red-500 px-4 py-1.5 rounded-lg text-[9px] font-black uppercase border border-red-500/20">Sign Out</button>
-                    </header>
-
-                    {/* Content Section */}
-                    <main className="flex-1 overflow-y-auto p-4 pb-32 hide-scrollbar">
-                        {activeView === 'dashboard' && <DashboardView />}
-                        {activeView === 'wanted' && <WantedView />}
-                        {activeView === 'civilians' && <CivilianView />}
-                        {activeView === 'staff' && <StaffView />}
-                    </main>
-
-                    {/* Bottom Navigation Terminal */}
-                    <nav className="fixed bottom-0 w-full glass-container rounded-none border-t border-white/10 p-6 flex justify-around items-center z-[100]">
-                        <div onClick={() => setActiveView('dashboard')} className={`nav-icon-container ${activeView === 'dashboard' ? 'text-blue-500' : 'text-slate-500'}`}>
-                            <i className="fas fa-shield-heart text-2xl"></i>
-                            <span className="nav-icon-label uppercase">الأرشيف</span>
-                        </div>
-                        <div onClick={() => setActiveView('wanted')} className={`nav-icon-container ${activeView === 'wanted' ? 'text-red-600' : 'text-slate-500'}`}>
-                            <i className="fas fa-id-card-clip text-2xl"></i>
-                            <span className="nav-icon-label uppercase">المطلوبين</span>
-                        </div>
-                        
-                        <div className="w-20"></div>
-
-                        <div onClick={() => setActiveView('civilians')} className={`nav-icon-container ${activeView === 'civilians' ? 'text-blue-400' : 'text-slate-500'}`}>
-                            <i className="fas fa-fingerprint text-2xl"></i>
-                            <span className="nav-icon-label uppercase">المدنيين</span>
-                        </div>
-                        <div onClick={() => setActiveView('staff')} className={`nav-icon-container ${activeView === 'staff' ? 'text-yellow-500' : 'text-slate-500'}`}>
-                            <i className="fas fa-user-gear text-2xl"></i>
-                            <span className="nav-icon-label uppercase">الكادر</span>
-                        </div>
-
-                        {/* Centered Action Button */}
-                        <div onClick={() => setActiveModal('case_form')} className="absolute left-1/2 -translate-x-1/2 -top-10 w-20 h-20 bg-blue-700 rounded-full border-[6px] border-[#020617] flex items-center justify-center text-white text-3xl shadow-[0_0_30px_rgba(29,78,216,0.4)] cursor-pointer hover:bg-blue-600 transition-all active:scale-90">
-                            <i className="fas fa-plus"></i>
-                        </div>
-                    </nav>
-
-                    {/* System Modals - Fully Expanded */}
-                    {activeModal && (
-                        <div className="fixed inset-0 bg-black/90 z-[300] flex items-center justify-center p-6 backdrop-blur-xl">
-                            <div className="w-full max-w-lg glass-container p-8 animate-slide-up border-t-4 border-blue-600 overflow-y-auto max-h-[90vh] hide-scrollbar">
-                                <h3 className="text-xl font-black text-center mb-8 uppercase tracking-widest text-blue-500">
-                                    {itemToEdit ? 'تعديل البيانات' : 'إضافة سجل جديد'}
-                                </h3>
-                                
-                                <form onSubmit={handleFormSubmission} className="space-y-5">
-                                    {activeModal === 'case_form' && (
-                                        <div className="space-y-4">
-                                            <input name="title" placeholder="عنوان القضية" defaultValue={itemToEdit?.title} className="fbi-input-field" required />
-                                            <textarea name="details" placeholder="تقرير مفصل عن الحادثة..." defaultValue={itemToEdit?.details} className="fbi-input-field h-32" required></textarea>
-                                            <input name="suspects" placeholder="المتهمين المتورطين" defaultValue={itemToEdit?.suspects} className="fbi-input-field" required />
-                                            <select name="status" defaultValue={itemToEdit?.status || 'Open'} className="fbi-input-field">
-                                                <option value="Open" className="bg-slate-900">قيد التحقيق (Open)</option>
-                                                <option value="Closed" className="bg-slate-900">مغلقة (Closed)</option>
-                                            </select>
-                                        </div>
-                                    )}
-
-                                    {activeModal === 'wanted_form' && (
-                                        <div className="space-y-4">
-                                            <input name="name" placeholder="الاسم الكامل للمطلوب" className="fbi-input-field" required />
-                                            <input name="charge" placeholder="التهمة الرئيسية" className="fbi-input-field" required />
-                                            <input name="image" placeholder="رابط صورة المطلوب المباشر" className="fbi-input-field" required />
-                                            <select name="dangerLevel" className="fbi-input-field">
-                                                <option value="Extremely Dangerous" className="bg-slate-900">خطر للغاية</option>
-                                                <option value="Moderate" className="bg-slate-900">متوسط الخطورة</option>
-                                            </select>
-                                        </div>
-                                    )}
-
-                                    {activeModal === 'civilian_form' && (
-                                        <div className="space-y-4">
-                                            <input name="name" placeholder="اسم المواطن" defaultValue={itemToEdit?.name} className="fbi-input-field" required />
-                                            <input name="sonyId" placeholder="رقم الهوية الوطنية" defaultValue={itemToEdit?.sonyId} className="fbi-input-field" required disabled={!!itemToEdit} />
-                                        </div>
-                                    )}
-
-                                    {activeModal === 'staff_form' && (
-                                        <div className="space-y-4">
-                                            <input name="id" placeholder="البريد الوظيفي" defaultValue={itemToEdit?.id} className="fbi-input-field" required />
-                                            <input name="name" placeholder="الاسم الكامل للعميل" defaultValue={itemToEdit?.name} className="fbi-input-field" required />
-                                            <select name="rank" defaultValue={itemToEdit?.rank || 'Special Agent'} className="fbi-input-field">
-                                                {FBI_RANKS.map(rank => <option key={rank} value={rank} className="bg-slate-900">{rank}</option>)}
-                                            </select>
-                                            <select name="access" defaultValue={itemToEdit?.access || 'field'} className="fbi-input-field">
-                                                <option value="field" className="bg-slate-900">صلاحية ميدانية</option>
-                                                <option value="command" className="bg-slate-900">صلاحية قيادية</option>
-                                            </select>
-                                            <input name="password" placeholder="كلمة المرور" defaultValue={itemToEdit?.password} className="fbi-input-field" required />
-                                        </div>
-                                    )}
-
-                                    <div className="flex gap-4 pt-4">
-                                        <button type="submit" className="flex-1 fbi-button-primary bg-blue-700">حفظ السجل</button>
-                                        <button type="button" onClick={() => { setActiveModal(null); setItemToEdit(null); }} className="flex-1 fbi-button-primary bg-slate-800">إلغاء</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    )}
+                        {isPrivileged && <div style={{display:'flex',gap:8}}>
+                            <button onClick={()=>{setItemToEdit(c);setActiveModal('civilian_form');}} style={{color:'#2a4a6a',padding:6}}><i className="fas fa-edit" style={{fontSize:'0.75rem'}}/></button>
+                            <button onClick={()=>deleteEntry('civilians',c.id)} style={{color:'#4a1a1a',padding:6}}><i className="fas fa-trash" style={{fontSize:'0.75rem'}}/></button>
+                        </div>}
+                    </div>
+                    <button onClick={()=>{setItemToEdit({suspects:c.name});setActiveModal('case_form');}}
+                        style={{width:'100%',marginTop:12,padding:'8px',background:'rgba(139,0,0,0.1)',border:'1px solid rgba(139,0,0,0.25)',borderRadius:3,color:'#cc4444',fontFamily:'Share Tech Mono',fontSize:'0.6rem',letterSpacing:'0.15em',cursor:'pointer'}}>
+                        <i className="fas fa-file-circle-exclamation" style={{marginRight:8}}/>ISSUE CRIMINAL WARRANT
+                    </button>
                 </div>
-            );
-        };
+            ))}
+        </div>
+    );
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+    const StaffTab = () => (
+        <div className="animate-fade-up" style={{display:'flex',flexDirection:'column',gap:14}}>
+            <p className="display" style={{fontSize:'1.1rem',color:'var(--gold-bright)',letterSpacing:'0.15em'}}>FEDERAL PERSONNEL</p>
+            {!isPrivileged ? (
+                <div className="glass-card" style={{padding:60,textAlign:'center'}}>
+                    <Corners/>
+                    <i className="fas fa-lock" style={{fontSize:'2.5rem',color:'var(--crimson-bright)',display:'block',marginBottom:14}}/>
+                    <p className="display" style={{letterSpacing:'0.3em',color:'#334',fontSize:'1rem'}}>RESTRICTED ACCESS</p>
+                    <p className="mono" style={{color:'#223',fontSize:'0.6rem',letterSpacing:'0.2em',marginTop:8}}>COMMAND CLEARANCE REQUIRED</p>
+                </div>
+            ) : (<>
+                {/* Admin row */}
+                <div className="data-row" style={{borderLeftColor:'var(--gold)'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                        <div style={{display:'flex',alignItems:'center',gap:12}}>
+                            <div style={{width:40,height:40,borderRadius:3,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(201,168,76,0.1)',border:'1px solid var(--border-gold)',color:'var(--gold)'}}><i className="fas fa-shield-halved" style={{fontSize:'0.85rem'}}/></div>
+                            <div>
+                                <p style={{fontWeight:600,fontSize:'0.85rem'}}>System Administrator</p>
+                                <p className="mono" style={{color:'var(--gold)',fontSize:'0.6rem',letterSpacing:'0.1em'}}>DIRECTOR</p>
+                            </div>
+                        </div>
+                        <span className="badge badge-gold">COMMAND</span>
+                    </div>
+                </div>
+                {allUsers.map(u => (
+                    <div key={u.id} className="data-row">
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                            <div style={{display:'flex',alignItems:'center',gap:12}}>
+                                <div style={{width:40,height:40,borderRadius:3,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(255,255,255,0.04)',border:'1px solid var(--border-dim)',color:'#445'}}><i className={`fas ${u.access==='command'?'fa-shield-halved':'fa-user-shield'}`} style={{fontSize:'0.85rem'}}/></div>
+                                <div>
+                                    <p style={{fontWeight:600,fontSize:'0.85rem'}}>{u.name}</p>
+                                    <p className="mono" style={{color:'#334',fontSize:'0.6rem',letterSpacing:'0.1em'}}>{u.rank}</p>
+                                </div>
+                            </div>
+                            <div style={{display:'flex',alignItems:'center',gap:12}}>
+                                <span className={`badge ${u.access==='command'?'badge-gold':''}`} style={u.access!=='command'?{background:'rgba(255,255,255,0.04)',color:'#334',border:'1px solid var(--border-dim)',fontFamily:'Share Tech Mono',fontSize:'0.55rem',padding:'3px 8px',borderRadius:2,letterSpacing:'0.15em',textTransform:'uppercase'}:{}}>{u.access==='command'?'COMMAND':'FIELD'}</span>
+                                <button onClick={()=>{setItemToEdit(u);setActiveModal('staff_form');}} style={{color:'#2a4a6a'}}><i className="fas fa-user-pen" style={{fontSize:'0.75rem'}}/></button>
+                                <button onClick={()=>deleteEntry('users',u.id)} style={{color:'#4a1a1a'}}><i className="fas fa-user-slash" style={{fontSize:'0.75rem'}}/></button>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+                <button className="btn-gold" style={{width:'100%'}} onClick={()=>setActiveModal('staff_form')}>
+                    <i className="fas fa-user-plus" style={{marginRight:8}}/> ENROLL NEW AGENT
+                </button>
+            </>)}
+        </div>
+    );
+
+    const ChatTab = () => (
+        <div className="animate-fade-up" style={{display:'flex',flexDirection:'column',height:'calc(100vh - 200px)'}}>
+            <p className="display" style={{fontSize:'1.1rem',color:'var(--gold)',letterSpacing:'0.15em',marginBottom:14}}>SECURE CHANNEL</p>
+            <div className="glass-card" style={{flex:1,padding:16,overflowY:'auto',display:'flex',flexDirection:'column',gap:10,marginBottom:12,minHeight:160}}>
+                <Corners/>
+                {chatLog.length===0 && <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',color:'#112'}}><i className="fas fa-satellite-dish" style={{fontSize:'2rem',marginBottom:12}}/><p className="mono" style={{fontSize:'0.65rem',letterSpacing:'0.2em'}}>SECURE CHANNEL OPEN</p></div>}
+                {chatLog.map((m,i) => (
+                    <div key={i} style={{display:'flex',justifyContent:m.from===currentUser.name?'flex-end':'flex-start'}}>
+                        <div className={`chat-bubble ${m.from===currentUser.name?'mine':'theirs'}`}>
+                            <p className="mono" style={{color:'var(--gold)',fontSize:'0.55rem',letterSpacing:'0.1em',marginBottom:4}}>{m.from} · {m.time}</p>
+                            <p>{m.msg}</p>
+                        </div>
+                    </div>
+                ))}
+                <div ref={chatEndRef}/>
+            </div>
+            <div style={{display:'flex',gap:8}}>
+                <input className="fbi-input" style={{flex:1}} placeholder="Encrypted message..." value={chatMsg} onChange={e=>setChatMsg(e.target.value)} onKeyDown={e=>e.key==='Enter'&&sendChat()}/>
+                <button className="btn-gold" style={{padding:'12px 18px'}} onClick={sendChat}><i className="fas fa-paper-plane"/></button>
+            </div>
+        </div>
+    );
+
+    const LogsTab = () => (
+        <div className="animate-fade-up" style={{display:'flex',flexDirection:'column',gap:14}}>
+            <p className="display" style={{fontSize:'1.1rem',color:'var(--gold)',letterSpacing:'0.15em'}}>ACTIVITY LOG</p>
+            <div className="glass-card" style={{overflow:'hidden'}}>
+                <Corners/>
+                {activityLog.length===0 && <div style={{textAlign:'center',padding:40,color:'#112'}}><p className="mono" style={{fontSize:'0.65rem',letterSpacing:'0.2em'}}>NO ACTIVITY RECORDED</p></div>}
+                {activityLog.map((l,i)=>(
+                    <div key={i} className="log-entry">
+                        [<span className="t">{l.time}</span>] &nbsp;<span className="u">{l.user}</span>&nbsp;—&nbsp;<span className="a">{l.action}</span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+
+    /* ─── MODAL ─── */
+    const titles = { case_form:'CASE FILE', wanted_form:'WANTED TARGET', civilian_form:'CIVILIAN RECORD', staff_form:'AGENT PROFILE' };
+    const Modal = () => !activeModal ? null : (
+        <div className="modal-overlay">
+            <div className="glass-card" style={{width:'100%',maxWidth:420,padding:24,overflowY:'auto',maxHeight:'90vh'}}>
+                <Corners/>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+                    <h3 className="display" style={{fontSize:'1.1rem',color:'var(--gold)',letterSpacing:'0.2em'}}>{itemToEdit?'EDIT':'NEW'} {titles[activeModal]}</h3>
+                    <button className="mono" style={{color:'#334',fontSize:'0.65rem',letterSpacing:'0.1em'}} onClick={()=>{setActiveModal(null);setItemToEdit(null);}}>
+                        <i className="fas fa-times" style={{marginRight:4}}/> CLOSE
+                    </button>
+                </div>
+                <Divider/>
+                <form onSubmit={handleSubmit} style={{display:'flex',flexDirection:'column',gap:14,marginTop:16}}>
+                    {activeModal==='case_form' && <>
+                        <div><label className="mono" style={{display:'block',marginBottom:6,color:'#334',fontSize:'0.6rem',letterSpacing:'0.2em'}}>CASE TITLE</label><input name="title" className="fbi-input" placeholder="Case codename..." defaultValue={itemToEdit?.title} required/></div>
+                        <div><label className="mono" style={{display:'block',marginBottom:6,color:'#334',fontSize:'0.6rem',letterSpacing:'0.2em'}}>INCIDENT REPORT</label><textarea name="details" className="fbi-input" style={{height:88}} placeholder="Detailed incident description..." defaultValue={itemToEdit?.details} required/></div>
+                        <div><label className="mono" style={{display:'block',marginBottom:6,color:'#334',fontSize:'0.6rem',letterSpacing:'0.2em'}}>SUSPECTS</label><input name="suspects" className="fbi-input" placeholder="Known suspects..." defaultValue={itemToEdit?.suspects} required/></div>
+                        <div><label className="mono" style={{display:'block',marginBottom:6,color:'#334',fontSize:'0.6rem',letterSpacing:'0.2em'}}>STATUS</label>
+                            <select name="status" className="fbi-input" defaultValue={itemToEdit?.status||'Open'}>
+                                <option value="Open">OPEN — Under Investigation</option>
+                                <option value="Closed">CLOSED — Case Resolved</option>
+                            </select>
+                        </div>
+                    </>}
+                    {activeModal==='wanted_form' && <>
+                        <div><label className="mono" style={{display:'block',marginBottom:6,color:'#334',fontSize:'0.6rem',letterSpacing:'0.2em'}}>FULL NAME</label><input name="name" className="fbi-input" placeholder="Subject full name..." required/></div>
+                        <div><label className="mono" style={{display:'block',marginBottom:6,color:'#334',fontSize:'0.6rem',letterSpacing:'0.2em'}}>PRIMARY CHARGE</label><input name="charge" className="fbi-input" placeholder="e.g. Armed Robbery, Homicide..." required/></div>
+                        <div><label className="mono" style={{display:'block',marginBottom:6,color:'#334',fontSize:'0.6rem',letterSpacing:'0.2em'}}>PHOTO URL</label><input name="image" className="fbi-input" placeholder="Direct image link..." required/></div>
+                        <div><label className="mono" style={{display:'block',marginBottom:6,color:'#334',fontSize:'0.6rem',letterSpacing:'0.2em'}}>THREAT LEVEL</label>
+                            <select name="dangerLevel" className="fbi-input">
+                                <option value="Extremely Dangerous">EXTREMELY DANGEROUS</option>
+                                <option value="Moderate">MODERATE THREAT</option>
+                                <option value="Low">LOW THREAT</option>
+                            </select>
+                        </div>
+                    </>}
+                    {activeModal==='civilian_form' && <>
+                        <div><label className="mono" style={{display:'block',marginBottom:6,color:'#334',fontSize:'0.6rem',letterSpacing:'0.2em'}}>FULL NAME</label><input name="name" className="fbi-input" placeholder="Civilian full name..." defaultValue={itemToEdit?.name} required/></div>
+                        <div><label className="mono" style={{display:'block',marginBottom:6,color:'#334',fontSize:'0.6rem',letterSpacing:'0.2em'}}>NATIONAL ID</label><input name="sonyId" className="fbi-input" placeholder="Citizen ID number..." defaultValue={itemToEdit?.sonyId} required disabled={!!itemToEdit}/></div>
+                    </>}
+                    {activeModal==='staff_form' && <>
+                        <div><label className="mono" style={{display:'block',marginBottom:6,color:'#334',fontSize:'0.6rem',letterSpacing:'0.2em'}}>AGENT EMAIL</label><input name="id" className="fbi-input" placeholder="agent@fbi.gov" defaultValue={itemToEdit?.id} required/></div>
+                        <div><label className="mono" style={{display:'block',marginBottom:6,color:'#334',fontSize:'0.6rem',letterSpacing:'0.2em'}}>FULL NAME</label><input name="name" className="fbi-input" placeholder="Agent full name..." defaultValue={itemToEdit?.name} required/></div>
+                        <div><label className="mono" style={{display:'block',marginBottom:6,color:'#334',fontSize:'0.6rem',letterSpacing:'0.2em'}}>RANK</label>
+                            <select name="rank" className="fbi-input" defaultValue={itemToEdit?.rank||'Special Agent'}>
+                                {FBI_RANKS.map(r=><option key={r} value={r}>{r}</option>)}
+                            </select>
+                        </div>
+                        <div><label className="mono" style={{display:'block',marginBottom:6,color:'#334',fontSize:'0.6rem',letterSpacing:'0.2em'}}>CLEARANCE LEVEL</label>
+                            <select name="access" className="fbi-input" defaultValue={itemToEdit?.access||'field'}>
+                                <option value="field">FIELD AGENT</option>
+                                <option value="command">COMMAND ACCESS</option>
+                            </select>
+                        </div>
+                        <div><label className="mono" style={{display:'block',marginBottom:6,color:'#334',fontSize:'0.6rem',letterSpacing:'0.2em'}}>ACCESS CODE</label><input name="password" type="password" className="fbi-input" placeholder="Assign secure password..." defaultValue={itemToEdit?.password} required/></div>
+                    </>}
+                    <div style={{display:'flex',gap:10,paddingTop:8}}>
+                        <button type="submit" className="btn-gold" style={{flex:1}}><i className="fas fa-save" style={{marginRight:8}}/>SAVE RECORD</button>
+                        <button type="button" className="btn-ghost" style={{flex:1}} onClick={()=>{setActiveModal(null);setItemToEdit(null);}}>CANCEL</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+
+    /* ─── MAIN LAYOUT ─── */
+    const NAV = [
+        {key:'dashboard', icon:'fa-shield-heart',   label:'ARCHIVE'},
+        {key:'wanted',    icon:'fa-crosshairs',      label:'WANTED'},
+        {key:'civilians', icon:'fa-fingerprint',     label:'CIVS'},
+        {key:'staff',     icon:'fa-user-gear',       label:'AGENTS'},
+        {key:'chat',      icon:'fa-satellite-dish',  label:'CHANNEL'},
+        {key:'logs',      icon:'fa-terminal',        label:'LOGS'},
+    ];
+
+    return (
+        <div style={{height:'100vh',width:'100vw',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+            <ScanLine/>
+            {/* HEADER */}
+            <div style={{background:'rgba(2,6,16,0.98)',borderBottom:'1px solid var(--border-gold)',padding:'12px 18px',display:'flex',justifyContent:'space-between',alignItems:'center',flexShrink:0}}>
+                <div style={{display:'flex',alignItems:'center',gap:12}}>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Seal_of_the_Federal_Bureau_of_Investigation.svg" style={{width:26,height:26,opacity:0.7}} alt="seal"/>
+                    <div>
+                        <p style={{fontWeight:700,fontSize:'0.85rem',letterSpacing:'0.05em'}}>{currentUser.name}</p>
+                        <p className="mono" style={{color:'var(--gold)',fontSize:'0.55rem',letterSpacing:'0.2em'}}>{currentUser.rank}</p>
+                    </div>
+                </div>
+                <div style={{display:'flex',alignItems:'center',gap:12}}>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}><PulseDot/><span className="mono" style={{color:'#1a3a1a',fontSize:'0.5rem',letterSpacing:'0.1em'}}>SECURE</span></div>
+                    <button className="btn-ghost" style={{fontSize:'0.7rem',padding:'6px 12px',borderColor:'rgba(139,0,0,0.4)',color:'#cc4444'}} onClick={doLogout}>SIGN OUT</button>
+                </div>
+            </div>
+            <Ticker/>
+            {/* CONTENT */}
+            <main style={{flex:1,overflowY:'auto',padding:'18px 16px 100px',scrollbarWidth:'thin'}}>
+                {activeTab==='dashboard' && <DashboardTab/>}
+                {activeTab==='wanted'    && <WantedTab/>}
+                {activeTab==='civilians' && <CivilianTab/>}
+                {activeTab==='staff'     && <StaffTab/>}
+                {activeTab==='chat'      && <ChatTab/>}
+                {activeTab==='logs'      && <LogsTab/>}
+            </main>
+            {/* BOTTOM NAV */}
+            <nav className="bottom-nav" style={{position:'fixed',bottom:0,width:'100%',padding:'10px 4px',display:'flex',justifyContent:'space-around',alignItems:'center',zIndex:200}}>
+                {NAV.map(n => (
+                    <div key={n.key} className={`nav-item ${activeTab===n.key?'active':''}`} onClick={()=>setActiveTab(n.key)}>
+                        <i className={`fas ${n.icon}`} style={{fontSize:'1.05rem'}}/>
+                        <span className="mono" style={{fontSize:'0.42rem',letterSpacing:'0.12em'}}>{n.label}</span>
+                    </div>
+                ))}
+            </nav>
+            {/* FAB */}
+            <div onClick={()=>setActiveModal('case_form')} style={{position:'fixed',bottom:36,left:'50%',transform:'translateX(-50%)',width:52,height:52,borderRadius:'50%',background:'linear-gradient(135deg,#1a3a8a,#1d4ed8)',border:'3px solid #020610',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:'1.1rem',boxShadow:'0 0 30px rgba(29,78,216,0.4)',cursor:'pointer',zIndex:300,transition:'all 0.2s'}}>
+                <i className="fas fa-plus"/>
+            </div>
+            <Modal/>
+        </div>
+    );
+};
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App/>);
+</script>
 </body>
 </html>
