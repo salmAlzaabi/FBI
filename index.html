@@ -605,67 +605,58 @@ const ChatTab = () => {
 ================================================================== */
 
 const OpsCenterTab = () => {
-    // --- States ---
-    const [onDuty, setOnDuty] = React.useState([]); 
-    const [isDuty, setIsDuty] = React.useState(false); 
-    const [fieldCommander, setFieldCommander] = React.useState(null); 
-    const [isDistributing, setIsDistributing] = React.useState(false); 
-    const [selectedForDist, setSelectedForDist] = React.useState(null); 
-    const [markers, setMarkers] = React.useState([]); 
+    // إعدادات التوزيع وقاعدة البيانات
+    const [isDistributing, setIsDistributing] = useState(false);
+    const [selectedForDist, setSelectedForDist] = useState(null);
+    const db = window.fbDB;
+    const T = window.fbTools;
 
-    // --- Functions ---
-    const toggleDuty = () => {
-        if (!isDuty) {
-            const newUser = {
-                id: Date.now(),
+    // دالة الدخول والخروج من الميدان (ترسل الإشارة للكل عبر Firebase)
+    const toggleDuty = async () => {
+        // نتحقق إذا كان اسمك موجود في القائمة الجماعية
+        const myDuty = allOnDuty.find(u => u.name === currentUser.name);
+        
+        if (!myDuty) {
+            // رفع تسجيل دخولك لسيرفر Firebase ليراه الجميع
+            await T.setDoc(T.doc(db, "ops_duty", currentUser.name), {
                 name: currentUser.name,
                 rank: currentUser.rank,
-                img: "https://i.imgur.com/6VBx3io.png", 
-                startTime: new Date()
-            };
-            setOnDuty([...onDuty, newUser]);
+                startTime: new Date().toISOString()
+            });
         } else {
-            setOnDuty(onDuty.filter(u => u.name !== currentUser.name));
-            if (fieldCommander === currentUser.name) setFieldCommander(null);
-            setMarkers(markers.filter(m => m.name !== currentUser.name));
+            // حذف بياناتك من السيرفر عند إنهاء الخدمة
+            await T.deleteDoc(T.doc(db, "ops_duty", currentUser.name));
+            // حذف دبوسك من الخريطة 
+            await T.deleteDoc(T.doc(db, "ops_markers", currentUser.name));
         }
-        setIsDuty(!isDuty);
     };
 
-    // --- التعديل الجذري هنا لحل مشكلة الإزاحة (Offset Fix) ---
-    const handleMapClick = (e) => {
+    // دالة وضع الدبوس (تحديد الموقع بدقة وإرسال الإحداثيات لجميع المتصفحات)
+    const handleMapClick = async (e) => {
         if (isDistributing && selectedForDist) {
-            // نستخدم الإحداثيات الأصلية للحدث (Native Event) لأنها الأدق مع السكرول
+            // حساب الإحداثيات بدقة (تصلح مشكلة الإزاحة مع السكرول)
             const posX = e.nativeEvent.offsetX;
             const posY = e.nativeEvent.offsetY;
-            
-            // نحسب النسبة المئوية بناءً على حجم العنصر الذي تم الضغط عليه (الصورة)
             const width = e.currentTarget.offsetWidth;
             const height = e.currentTarget.offsetHeight;
 
             const xPercent = (posX / width) * 100;
             const yPercent = (posY / height) * 100;
+
+            // تحديث موقع الدبوس في Firebase للضابط المحدد
+            await T.setDoc(T.doc(db, "ops_markers", selectedForDist.name), {
+                name: selectedForDist.name,
+                x: xPercent,
+                y: yPercent
+            });
             
-            const otherMarkers = markers.filter(m => m.name !== selectedForDist.name);
-            setMarkers([...otherMarkers, { 
-                id: Date.now(), 
-                name: selectedForDist.name, 
-                x: xPercent, 
-                y: yPercent 
-            }]);
-            
-            setIsDistributing(false); 
+            setIsDistributing(false);
             setSelectedForDist(null);
         }
     };
 
-    const getDuration = (start) => {
-        const diff = Math.floor((new Date() - start) / 60000);
-        return `${diff}m`;
-    };
-
     return (
-        <div className="ops-wrapper" style={{display:'flex', flexDirection:'column', gap:15, height:'calc(100vh - 180px)', position:'relative'}}>
+        <div className="ops-wrapper animate-fade-up" style={{display:'flex', flexDirection:'column', gap:15, height:'calc(100vh - 180px)', position:'relative'}}>
             
             <style>{`
                 div[onClick*="case_form"] { 
@@ -677,47 +668,35 @@ const OpsCenterTab = () => {
                 .map-scroll-area { scroll-behavior: smooth; }
             `}</style>
 
+            {/* زر حالة الخدمة - يتغير لونه ونصّه بناءً على البيانات الجماعية */}
             <div style={{display:'flex', gap:10}}>
-                <button className={isDuty ? "btn-crimson" : "btn-gold"} style={{flex:1, padding:12}} onClick={toggleDuty}>
-                    <i className="fas fa-satellite" style={{marginRight:8}}/>
-                    {isDuty ? "END FIELD DUTY" : "START FIELD DUTY"}
+                <button 
+                    className={allOnDuty.find(u => u.name === currentUser.name) ? "btn-red" : "btn-gold"} 
+                    style={{flex:1, padding:14, fontWeight:'bold', letterSpacing:'1px'}} 
+                    onClick={toggleDuty}
+                >
+                    <i className="fas fa-satellite-dish" style={{marginRight:10}}/>
+                    {allOnDuty.find(u => u.name === currentUser.name) ? "TERMINATE FIELD DUTY" : "INITIATE FIELD DUTY"}
                 </button>
             </div>
 
             <div style={{display:'flex', gap:15, flex:1, minHeight:0}}>
                 
-                <div className="glass-card map-scroll-area" 
-                     style={{
-                         flex:2.5, 
-                         position:'relative', 
-                         overflowY:'auto', 
-                         overflowX:'hidden', 
-                         background:'#000', 
-                         border:'1px solid var(--border-gold)'
-                     }}>
+                {/* الخريطة التكتيكية */}
+                <div className="glass-card map-scroll-area" style={{flex:2.5, position:'relative', overflowY:'auto', overflowX:'hidden', background:'#000', border:'1px solid var(--border-gold)'}}>
                     <Corners/>
-                    
-                    {/* الحاوية الداخلية (مهم جداً أن تكون onClick هنا) */}
-                    <div style={{position:'relative', width:'100%', cursor: isDistributing ? 'crosshair' : 'default'}} 
-                         onClick={handleMapClick}>
-                        
+                    <div style={{position:'relative', width:'100%', cursor: isDistributing ? 'crosshair' : 'default'}} onClick={handleMapClick}>
                         <img 
                             src="https://media.discordapp.net/attachments/1483119430673371217/1489640705180831994/IMG_2479.jpg?ex=69d12784&is=69cfd604&hm=bf1d4b52640d4b90ff56abb32d7530e3f49c423df99cac63b774bde7d2409433&=&format=webp&width=678&height=920" 
                             style={{width:'100%', height:'auto', display:'block', pointerEvents:'none'}} 
                             alt="Tactical Map"
                         />
                         
-                        {markers.map(m => (
-                            <div key={m.id} style={{
-                                position:'absolute', 
-                                left: `${m.x}%`, 
-                                top: `${m.y}%`, 
-                                transform:'translate(-50%, -100%)', // لجعل رأس الدبوس هو النقطة المحددة
-                                pointerEvents:'none', 
-                                zIndex:10
-                            }}>
-                                <i className="fas fa-location-dot" style={{color:'var(--gold)', fontSize:'1.6rem', filter:'drop-shadow(0 0 5px #000)'}}/>
-                                <div className="mono" style={{background:'rgba(0,0,0,0.95)', color:'#fff', padding:'2px 8px', borderRadius:2, fontSize:'0.55rem', marginTop:2, border:'1px solid var(--gold)', whiteSpace:'nowrap'}}>
+                        {/* رسم الدبابيس للجميع من قاعدة البيانات */}
+                        {allMarkers.map(m => (
+                            <div key={m.id} style={{position:'absolute', left: `${m.x}%`, top: `${m.y}%`, transform:'translate(-50%, -100%)', pointerEvents:'none', zIndex:10}}>
+                                <i className="fas fa-location-dot" style={{color:'var(--gold)', fontSize:'1.8rem', filter:'drop-shadow(0 0 5px #000)'}}/>
+                                <div className="mono" style={{background:'rgba(0,0,0,0.95)', color:'#fff', padding:'2px 8px', borderRadius:2, fontSize:'0.6rem', border:'1px solid var(--gold)', marginTop:2, whiteSpace:'nowrap'}}>
                                     {m.name}
                                 </div>
                             </div>
@@ -725,19 +704,29 @@ const OpsCenterTab = () => {
                     </div>
                 </div>
 
-                {/* Sidebar */}
+                {/* قائمة الوحدات الميدانية (Sidebar) */}
                 <div className="glass-card" style={{flex:1, padding:15, display:'flex', flexDirection:'column', gap:12, overflowY:'auto'}}>
                     <Corners/>
-                    <p className="display" style={{fontSize:'0.75rem', color:'var(--gold)'}}>ACTIVE UNITS</p>
-                    {onDuty.map(u => (
-                        <div key={u.id} className="log-entry" style={{padding:'10px 8px', display:'flex', alignItems:'center', gap:10, background:'rgba(255,255,255,0.02)'}}>
-                            <div style={{flex:1, cursor:'pointer'}} onClick={() => { if(confirm(`Set ${u.name} as Commander?`)) setFieldCommander(u.name); }}>
-                                <p style={{fontSize:'0.8rem', fontWeight:'700', color: fieldCommander === u.name ? 'var(--gold)' : '#eee'}}>
-                                    {u.name} {fieldCommander === u.name && <i className="fas fa-crown" style={{fontSize:'0.6rem', marginLeft:4}}/>}
-                                </p>
+                    <p className="display" style={{fontSize:'0.8rem', color:'var(--gold)', borderBottom:'1px solid rgba(201,168,76,0.2)', paddingBottom:10}}>ACTIVE UNITS</p>
+                    
+                    {allOnDuty.length === 0 && <p className="mono" style={{fontSize:'0.6rem', opacity:0.5, textAlign:'center'}}>NO UNITS ON FIELD</p>}
+                    
+                    {allOnDuty.map(u => (
+                        <div key={u.id} className="log-entry" style={{padding:'10px 8px', display:'flex', alignItems:'center', gap:10, background:'rgba(255,255,255,0.02)', borderLeft:'2px solid var(--gold)'}}>
+                            <div style={{flex:1}}>
+                                <p style={{fontSize:'0.85rem', fontWeight:'700', color: '#eee'}}>{u.name}</p>
+                                <p className="mono" style={{fontSize:'0.5rem', color:'var(--gold)', opacity:0.8}}>{u.rank}</p>
                             </div>
-                            {fieldCommander === currentUser.name && (
-                                <button className="btn-gold" style={{padding:'5px 8px', fontSize:'0.5rem'}} onClick={() => { setSelectedForDist(u); setIsDistributing(true); }}>DEPLOY</button>
+                            
+                            {/* زر التوزيع يظهر لك (A-1) أو لأي Director */}
+                            {(currentUser.rank === "Director" || currentUser.id === "A-1") && (
+                                <button 
+                                    className="btn-gold" 
+                                    style={{padding:'5px 10px', fontSize:'0.55rem'}} 
+                                    onClick={() => { setSelectedForDist(u); setIsDistributing(true); }}
+                                >
+                                    DEPLOY
+                                </button>
                             )}
                         </div>
                     ))}
