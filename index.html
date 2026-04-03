@@ -257,7 +257,7 @@ if (screen === 'home') return (
                     <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Seal_of_the_Federal_Bureau_of_Investigation.svg" style={{width:28,height:28,opacity:0.75}} alt="seal"/>
                     <div>
                         <p className="mono" style={{color:'var(--gold)',fontSize:'0.55rem',letterSpacing:'0.22em'}}>FEDERAL BUREAU OF INVESTIGATION</p>
-                        <p className="mono" style={{color:'#1a2a1a',fontSize:'0.48rem',letterSpacing:'0.15em'}}>CLASSIFIED INTELLIGENCE NETWORK — TERMINAL v4.1</p>
+                        <p className="mono" style={{color:'#1a2a1a',fontSize:'0.48rem',letterSpacing:'0.15em'}}>CRIMINAL JUSTICE INFORMATION SERVICES — TERMINAL v4.1</p>
                     </div>
                 </div>
                 <div style={{display:'flex',alignItems:'center',gap:8}}>
@@ -269,14 +269,17 @@ if (screen === 'home') return (
             <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'0 24px',textAlign:'center',animation:'fadeUp 0.8s ease both'}}>
                 <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Seal_of_the_Federal_Bureau_of_Investigation.svg"
                      style={{width:110,height:110,marginBottom:28,animation:'sealPulse 4s ease-in-out infinite',filter:'drop-shadow(0 0 25px rgba(201,168,76,0.4))'}} alt="FBI Seal"/>
-                <p className="mono" style={{color:'#2a3a2a',letterSpacing:'0.5em',fontSize:'0.6rem',marginBottom:16}}>CENTRAL INTELLIGENCE DIVISION</p>
-                <h1 className="hero-title" style={{marginBottom:12}}>WE SEE<br/>WHAT OTHERS<br/>DON'T</h1>
-                <div className="classified-stripe" style={{padding:'5px 20px',margin:'20px 0'}}>
-                    <span className="display" style={{letterSpacing:'0.3em',fontSize:'0.85rem',color:'white'}}>TOP SECRET // SCI // NOFORN</span>
-                </div>
-                <p className="mono" style={{color:'#2a2a40',fontSize:'0.65rem',letterSpacing:'0.2em',marginBottom:32,maxWidth:280,lineHeight:1.8}}>AUTHORIZED PERSONNEL ONLY<br/>ALL ACTIVITY IS LOGGED AND MONITORED</p>
                 
-                {/* تم استبدال الزرين بزر واحد هنا */}
+                {/* تم تغيير المسمى هنا إلى Criminal Investigative Division */}
+                <p className="mono" style={{color:'#2a3a2a',letterSpacing:'0.5em',fontSize:'0.6rem',marginBottom:16}}>CRIMINAL INVESTIGATIVE DIVISION</p>
+                
+                <h1 className="hero-title" style={{marginBottom:12}}>FIDELITY<br/>BRAVERY<br/>INTEGRITY</h1>
+                
+                <div className="classified-stripe" style={{padding:'5px 20px',margin:'20px 0'}}>
+                    <span className="display" style={{letterSpacing:'0.3em',fontSize:'0.85rem',color:'white'}}>LAW ENFORCEMENT SENSITIVE // FOUO</span>
+                </div>
+                <p className="mono" style={{color:'#2a2a40',fontSize:'0.65rem',letterSpacing:'0.2em',marginBottom:32,maxWidth:280,lineHeight:1.8}}>OFFICIAL USE ONLY<br/>FEDERAL LAW ENFORCEMENT NETWORK</p>
+                
                 <div style={{width:'100%', maxWidth:320, marginTop:10}}>
                     <button className="btn-gold" style={{width:'100%', display:'flex', alignItems:'center', justifyContent:'center', gap:12, padding:'16px 0'}} onClick={() => setScreen('login')}>
                         <i className="fas fa-shield-halved" style={{fontSize:'1.1rem'}}/>
@@ -285,7 +288,7 @@ if (screen === 'home') return (
                 </div>
             </div>
             <div style={{padding:'12px 24px',borderTop:'1px solid rgba(255,255,255,0.04)',display:'flex',justifyContent:'space-between'}}>
-                <span className="mono" style={{color:'#111',fontSize:'0.5rem',letterSpacing:'0.12em'}}>DOJ // FBI // INTEL DIVISION</span>
+                <span className="mono" style={{color:'#111',fontSize:'0.5rem',letterSpacing:'0.12em'}}>DOJ // FBI // FIELD OFFICE</span>
                 <span className="mono" style={{color:'#111',fontSize:'0.5rem',letterSpacing:'0.12em'}}>{new Date().toUTCString().toUpperCase()}</span>
             </div>
         </div>
