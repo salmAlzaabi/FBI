@@ -812,6 +812,7 @@ const OpsCenterTab = () => {
         {key:'dashboard', icon:'fa-shield-heart',   label:'ARCHIVE'},
         {key:'wanted',    icon:'fa-crosshairs',      label:'WANTED'},
         {key:'civilians', icon:'fa-fingerprint',     label:'CIVS'},
+        {key:'ops',       icon:'fa-map-location-dot',label:'OPS'},
         {key:'staff',     icon:'fa-user-gear',       label:'AGENTS'},
         {key:'chat',      icon:'fa-satellite-dish',  label:'CHANNEL'},
         {key:'logs',      icon:'fa-terminal',        label:'LOGS'},
@@ -843,6 +844,7 @@ const OpsCenterTab = () => {
                 {activeTab==='staff'     && <StaffTab/>}
                 {activeTab==='chat'      && <ChatTab/>}
                 {activeTab==='logs'      && <LogsTab/>}
+                {activeTab==='ops'       && <OpsCenterTab/>}
             </main>
             {/* BOTTOM NAV */}
             <nav className="bottom-nav" style={{position:'fixed',bottom:0,width:'100%',padding:'10px 4px',display:'flex',justifyContent:'space-around',alignItems:'center',zIndex:200}}>
