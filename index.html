@@ -588,12 +588,12 @@ const ChatTab = () => {
         );
     };
 /* ==================================================================
-   SECTION: OPERATIONS CENTER (OpsCenterTab) - FINAL SCROLLABLE VERSION
-   DESCRIPTION: Full Tactical Map with Vertical Scroll & Marker Logic.
+   SECTION: OPERATIONS CENTER (OpsCenterTab) - PRECISION FIX
+   DESCRIPTION: Fixed Marker Offset for Scrollable Tall Maps.
 ================================================================== */
 
 const OpsCenterTab = () => {
-    // --- States (الحالات) ---
+    // --- States ---
     const [onDuty, setOnDuty] = React.useState([]); 
     const [isDuty, setIsDuty] = React.useState(false); 
     const [fieldCommander, setFieldCommander] = React.useState(null); 
@@ -601,9 +601,7 @@ const OpsCenterTab = () => {
     const [selectedForDist, setSelectedForDist] = React.useState(null); 
     const [markers, setMarkers] = React.useState([]); 
 
-    // --- Functions (الوظائف) ---
-
-    // تسجيل الدخول والخروج من الميدان
+    // --- Functions ---
     const toggleDuty = () => {
         if (!isDuty) {
             const newUser = {
@@ -622,18 +620,28 @@ const OpsCenterTab = () => {
         setIsDuty(!isDuty);
     };
 
-    // وضع الدبوس وتحديث الموقع (يعمل بدقة مع السكرول)
+    // --- التعديل الجذري هنا لحل مشكلة الإزاحة (Offset Fix) ---
     const handleMapClick = (e) => {
         if (isDistributing && selectedForDist) {
-            const rect = e.currentTarget.getBoundingClientRect();
-            // حساب الإحداثيات بالنسبة لحجم الصورة الفعلي داخل منطقة التمرير
-            const x = ((e.clientX - rect.left) / rect.width) * 100;
-            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            // نستخدم الإحداثيات الأصلية للحدث (Native Event) لأنها الأدق مع السكرول
+            const posX = e.nativeEvent.offsetX;
+            const posY = e.nativeEvent.offsetY;
+            
+            // نحسب النسبة المئوية بناءً على حجم العنصر الذي تم الضغط عليه (الصورة)
+            const width = e.currentTarget.offsetWidth;
+            const height = e.currentTarget.offsetHeight;
+
+            const xPercent = (posX / width) * 100;
+            const yPercent = (posY / height) * 100;
             
             const otherMarkers = markers.filter(m => m.name !== selectedForDist.name);
-            const newMarker = { id: Date.now(), name: selectedForDist.name, x, y };
-
-            setMarkers([...otherMarkers, newMarker]);
+            setMarkers([...otherMarkers, { 
+                id: Date.now(), 
+                name: selectedForDist.name, 
+                x: xPercent, 
+                y: yPercent 
+            }]);
+            
             setIsDistributing(false); 
             setSelectedForDist(null);
         }
@@ -647,59 +655,57 @@ const OpsCenterTab = () => {
     return (
         <div className="ops-wrapper" style={{display:'flex', flexDirection:'column', gap:15, height:'calc(100vh - 180px)', position:'relative'}}>
             
-            {/* CSS مخصص للسكرول بار وتنسيق الأزرار */}
             <style>{`
                 div[onClick*="case_form"] { 
-                    left: 94% !important; 
-                    bottom: 25px !important;
-                    transform: scale(0.6) !important;
-                    opacity: 0.3;
-                    z-index: 100 !important;
+                    left: 94% !important; bottom: 25px !important;
+                    transform: scale(0.6) !important; opacity: 0.3; z-index: 100 !important;
                 }
                 .map-scroll-area::-webkit-scrollbar { width: 5px; }
                 .map-scroll-area::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
-                .map-scroll-area::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+                .map-scroll-area { scroll-behavior: smooth; }
             `}</style>
 
-            {/* الأزرار العلوية */}
             <div style={{display:'flex', gap:10}}>
                 <button className={isDuty ? "btn-crimson" : "btn-gold"} style={{flex:1, padding:12}} onClick={toggleDuty}>
                     <i className="fas fa-satellite" style={{marginRight:8}}/>
                     {isDuty ? "END FIELD DUTY" : "START FIELD DUTY"}
                 </button>
-                {fieldCommander === currentUser.name && (
-                    <button className="btn-gold" style={{flex:1, border:'1px solid #4ade80', color:'#4ade80'}} onClick={() => setMarkers([])}>
-                        <i className="fas fa-trash-can" style={{marginRight:8}}/> CLEAR ALL
-                    </button>
-                )}
             </div>
 
             <div style={{display:'flex', gap:15, flex:1, minHeight:0}}>
                 
-                {/* منطقة الخريطة مع خاصية التمرير (Scroll) */}
                 <div className="glass-card map-scroll-area" 
                      style={{
                          flex:2.5, 
                          position:'relative', 
-                         overflowY:'auto', // تفعيل التمرير العمودي
+                         overflowY:'auto', 
                          overflowX:'hidden', 
                          background:'#000', 
                          border:'1px solid var(--border-gold)'
                      }}>
                     <Corners/>
                     
-                    <div style={{position:'relative', width:'100%', cursor: isDistributing ? 'crosshair' : 'default'}} onClick={handleMapClick}>
+                    {/* الحاوية الداخلية (مهم جداً أن تكون onClick هنا) */}
+                    <div style={{position:'relative', width:'100%', cursor: isDistributing ? 'crosshair' : 'default'}} 
+                         onClick={handleMapClick}>
+                        
                         <img 
                             src="https://media.discordapp.net/attachments/1483119430673371217/1489640705180831994/IMG_2479.jpg?ex=69d12784&is=69cfd604&hm=bf1d4b52640d4b90ff56abb32d7530e3f49c423df99cac63b774bde7d2409433&=&format=webp&width=678&height=920" 
-                            style={{width:'100%', height:'auto', display:'block'}} 
+                            style={{width:'100%', height:'auto', display:'block', pointerEvents:'none'}} 
                             alt="Tactical Map"
                         />
                         
-                        {/* رسم الدبابيس (Markers) */}
                         {markers.map(m => (
-                            <div key={m.id} style={{position:'absolute', left: `${m.x}%`, top: `${m.y}%`, transform:'translate(-50%, -100%)', pointerEvents:'none', zIndex:10}}>
+                            <div key={m.id} style={{
+                                position:'absolute', 
+                                left: `${m.x}%`, 
+                                top: `${m.y}%`, 
+                                transform:'translate(-50%, -100%)', // لجعل رأس الدبوس هو النقطة المحددة
+                                pointerEvents:'none', 
+                                zIndex:10
+                            }}>
                                 <i className="fas fa-location-dot" style={{color:'var(--gold)', fontSize:'1.6rem', filter:'drop-shadow(0 0 5px #000)'}}/>
-                                <div className="mono" style={{background:'rgba(0,0,0,0.95)', color:'#fff', padding:'2px 8px', borderRadius:2, fontSize:'0.55rem', marginTop:2, border:'1px solid var(--gold)', whiteSpace:'nowrap', boxShadow:'0 0 10px #000'}}>
+                                <div className="mono" style={{background:'rgba(0,0,0,0.95)', color:'#fff', padding:'2px 8px', borderRadius:2, fontSize:'0.55rem', marginTop:2, border:'1px solid var(--gold)', whiteSpace:'nowrap'}}>
                                     {m.name}
                                 </div>
                             </div>
@@ -707,42 +713,24 @@ const OpsCenterTab = () => {
                     </div>
                 </div>
 
-                {/* القائمة الجانبية (الوحدات) */}
+                {/* Sidebar */}
                 <div className="glass-card" style={{flex:1, padding:15, display:'flex', flexDirection:'column', gap:12, overflowY:'auto'}}>
                     <Corners/>
-                    <p className="display" style={{fontSize:'0.75rem', color:'var(--gold)', letterSpacing:'0.15em'}}>ACTIVE UNITS</p>
-                    
-                    {onDuty.length === 0 && <p className="mono" style={{fontSize:'0.6rem', color:'#445', textAlign:'center', marginTop:25}}>NO UNITS IN FIELD</p>}
-
+                    <p className="display" style={{fontSize:'0.75rem', color:'var(--gold)'}}>ACTIVE UNITS</p>
                     {onDuty.map(u => (
                         <div key={u.id} className="log-entry" style={{padding:'10px 8px', display:'flex', alignItems:'center', gap:10, background:'rgba(255,255,255,0.02)'}}>
-                            <img src={u.img} style={{width:35, height:35, borderRadius:3, border:'1px solid #222'}} />
-                            <div style={{flex:1, cursor:'pointer'}} onClick={() => {
-                                if(confirm(`Designate ${u.name} as Field Commander?`)) setFieldCommander(u.name);
-                            }}>
+                            <div style={{flex:1, cursor:'pointer'}} onClick={() => { if(confirm(`Set ${u.name} as Commander?`)) setFieldCommander(u.name); }}>
                                 <p style={{fontSize:'0.8rem', fontWeight:'700', color: fieldCommander === u.name ? 'var(--gold)' : '#eee'}}>
                                     {u.name} {fieldCommander === u.name && <i className="fas fa-crown" style={{fontSize:'0.6rem', marginLeft:4}}/>}
                                 </p>
-                                <p className="mono" style={{fontSize:'0.45rem', color:'#667'}}>{u.rank} • {getDuration(u.startTime)}</p>
                             </div>
-                            
                             {fieldCommander === currentUser.name && (
-                                <button className="btn-gold" style={{padding:'5px 8px', fontSize:'0.5rem'}} onClick={() => {
-                                    setSelectedForDist(u);
-                                    setIsDistributing(true);
-                                }}>DEPLOY</button>
+                                <button className="btn-gold" style={{padding:'5px 8px', fontSize:'0.5rem'}} onClick={() => { setSelectedForDist(u); setIsDistributing(true); }}>DEPLOY</button>
                             )}
                         </div>
                     ))}
                 </div>
             </div>
-
-            {/* إشعار التوزيع (يظهر فوق الخريطة) */}
-            {isDistributing && (
-                <div style={{position:'absolute', bottom:40, left:'50%', transform:'translateX(-50%)', background:'var(--gold)', color:'#000', padding:'10px 30px', borderRadius:2, zIndex:200, fontWeight:'900', fontSize:'0.7rem', border:'2px solid #000'}} className="animate-pulse mono">
-                    <i className="fas fa-crosshairs" style={{marginRight:10}}/> SCROLL & CLICK TO DEPLOY: {selectedForDist?.name}
-                </div>
-            )}
         </div>
     );
 };
