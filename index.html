@@ -508,28 +508,131 @@ if (screen === 'home') return (
         </div>
     );
 
-    const ChatTab = () => (
-        <div className="animate-fade-up" style={{display:'flex',flexDirection:'column',height:'calc(100vh - 200px)'}}>
-            <p className="display" style={{fontSize:'1.1rem',color:'var(--gold)',letterSpacing:'0.15em',marginBottom:14}}>SECURE CHANNEL</p>
-            <div className="glass-card" style={{flex:1,padding:16,overflowY:'auto',display:'flex',flexDirection:'column',gap:10,marginBottom:12,minHeight:160}}>
-                <Corners/>
-                {chatLog.length===0 && <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',color:'#112'}}><i className="fas fa-satellite-dish" style={{fontSize:'2rem',marginBottom:12}}/><p className="mono" style={{fontSize:'0.65rem',letterSpacing:'0.2em'}}>SECURE CHANNEL OPEN</p></div>}
-                {chatLog.map((m,i) => (
-                    <div key={i} style={{display:'flex',justifyContent:m.from===currentUser.name?'flex-end':'flex-start'}}>
-                        <div className={`chat-bubble ${m.from===currentUser.name?'mine':'theirs'}`}>
-                            <p className="mono" style={{color:'var(--gold)',fontSize:'0.55rem',letterSpacing:'0.1em',marginBottom:4}}>{m.from} · {m.time}</p>
-                            <p>{m.msg}</p>
+const ChatTab = () => {
+        const [rawText, setRawText] = React.useState('');
+        const [cipherText, setCipherText] = React.useState('');
+        const [decodeInput, setDecodeInput] = React.useState('');
+        const [decodedResult, setDecodedResult] = React.useState('');
+
+        // خوارزمية التشفير المبتكرة الخاصة بالـ FBI (تدعم العربي والإنجليزي)
+        const encrypt = (text) => {
+            if (!text) return '';
+            try {
+                const b64 = btoa(unescape(encodeURIComponent(text)));
+                return b64.split('').map(char => {
+                    const map = {
+                        'A':'Σ', 'B':'Δ', 'C':'7', 'D':'Θ', 'E':'Ξ', 'F':'Φ', 'G':'9', 'H':'Ψ', 
+                        'I':'1', 'J':'ζ', 'K':'κ', 'L':'λ', 'M':'μ', 'N':'ν', 'O':'0', 'P':'π',
+                        'Q':'ρ', 'R':'5', 'S':'σ', 'T':'τ', 'U':'υ', 'V':'4', 'W':'ω', 'X':'χ',
+                        'Y':'ψ', 'Z':'2', '=': '≠', '+': '†', '/': '¦'
+                    };
+                    return map[char.toUpperCase()] || char;
+                }).join('·');
+            } catch(e) { return "ERROR"; }
+        };
+
+        const decrypt = (cipher) => {
+            if (!cipher) return '';
+            try {
+                const reversedMap = {
+                    'Σ':'A', 'Δ':'B', '7':'C', 'Θ':'D', 'Ξ':'E', 'Φ':'F', '9':'G', 'Ψ':'H',
+                    '1':'I', 'ζ':'J', 'κ':'K', 'λ':'L', 'μ':'M', 'ν':'N', '0':'O', 'π':'P',
+                    'ρ':'Q', '5':'R', 'σ':'S', 'τ':'T', 'υ':'U', '4':'V', 'ω':'W', 'χ':'X',
+                    'ψ':'Y', '2':'Z', '≠':'=', '†':'+', '¦':'/'
+                };
+                const b64 = cipher.split('·').map(sym => reversedMap[sym] || sym).join('');
+                return decodeURIComponent(escape(atob(b64)));
+            } catch (e) { return "خطأ: الشفرة غير صالحة أو تالفة"; }
+        };
+
+        return (
+            <div className="animate-fade-up" style={{display:'flex', flexDirection:'column', gap:20}}>
+                <p className="display" style={{fontSize:'1.1rem', color:'var(--gold)', letterSpacing:'0.15em', marginBottom:10}}>ENIGMA CRYPTOGRAPHIC TERMINAL</p>
+                
+                <div style={{display:'flex', flexDirection:'column', gap:20}}>
+                    {/* جهاز التشفير الفيدرالي - Encoder */}
+                    <div className="glass-card" style={{padding:24, borderLeft:'4px solid var(--gold)', background:'rgba(2,6,16,0.4)'}}>
+                        <Corners/>
+                        <div style={{display:'flex', alignItems:'center', gap:12, marginBottom:18}}>
+                            <div style={{width:32, height:32, borderRadius:'50%', background:'rgba(201,168,76,0.1)', display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid var(--border-gold)'}}>
+                                <i className="fas fa-file-shield" style={{color:'var(--gold)', fontSize:'0.8rem'}}/>
+                            </div>
+                            <div>
+                                <p className="display" style={{fontSize:'0.75rem', color:'var(--gold)', letterSpacing:'0.1em'}}>ENCRYPTION UNIT</p>
+                                <p className="mono" style={{fontSize:'0.45rem', color:'#445', letterSpacing:'0.1em'}}>SECURE TEXT TO CIPHER CONVERSION</p>
+                            </div>
+                        </div>
+                        
+                        <textarea 
+                            className="fbi-input" 
+                            style={{height:90, fontSize:'0.9rem', marginBottom:15, background:'rgba(0,0,0,0.3)', padding:15, lineHeight:1.5}} 
+                            placeholder="Type or paste your secret message here..."
+                            value={rawText}
+                            onChange={(e) => {
+                                setRawText(e.target.value);
+                                setCipherText(encrypt(e.target.value));
+                            }}
+                        />
+                        
+                        <div className="mono" style={{background:'rgba(0,0,0,0.6)', padding:15, borderRadius:4, border:'1px dashed var(--border-gold)', position:'relative'}}>
+                            <p style={{fontSize:'0.55rem', color:'#556', marginBottom:8, textTransform:'uppercase'}}>Encrypted Output Trace:</p>
+                            <p style={{fontSize:'0.8rem', color:'#4ade80', wordBreak:'break-all', minHeight:25, fontFamily:'Share Tech Mono', letterSpacing:'1px'}}>
+                                {cipherText || "AWAITING INPUT SIGNAL..."}
+                            </p>
+                            {cipherText && (
+                                <button 
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(cipherText);
+                                        // يمكن إضافة تنبيه بسيط هنا
+                                    }} 
+                                    style={{marginTop:12, color:'var(--gold)', fontSize:'0.65rem', cursor:'pointer', border:'1px solid rgba(201,168,76,0.3)', background:'rgba(201,168,76,0.05)', padding:'4px 10px', borderRadius:2, transition:'0.2s'}}
+                                >
+                                    <i className="fas fa-copy" style={{marginRight:6}}/> COPY ENCRYPTED CODE
+                                </button>
+                            )}
                         </div>
                     </div>
-                ))}
-                <div ref={chatEndRef}/>
+
+                    {/* جهاز فك التشفير الفيدرالي - Decoder */}
+                    <div className="glass-card" style={{padding:24, borderLeft:'4px solid var(--crimson-bright)', background:'rgba(10,0,0,0.2)'}}>
+                        <Corners/>
+                        <div style={{display:'flex', alignItems:'center', gap:12, marginBottom:18}}>
+                            <div style={{width:32, height:32, borderRadius:'50%', background:'rgba(220,38,38,0.1)', display:'flex', alignItems:'center', justifyContent:'center', border:'1px solid rgba(220,38,38,0.3)'}}>
+                                <i className="fas fa-unlock-keyhole" style={{color:'var(--crimson-bright)', fontSize:'0.8rem'}}/>
+                            </div>
+                            <div>
+                                <p className="display" style={{fontSize:'0.75rem', color:'var(--crimson-bright)', letterSpacing:'0.1em'}}>DECRYPTION UNIT</p>
+                                <p className="mono" style={{fontSize:'0.45rem', color:'#445', letterSpacing:'0.1em'}}>AUTHORIZED SIGNAL DECODING</p>
+                            </div>
+                        </div>
+
+                        <textarea 
+                            className="fbi-input" 
+                            style={{height:90, fontSize:'0.9rem', marginBottom:15, borderColor:'rgba(139,0,0,0.3)', background:'rgba(0,0,0,0.2)', padding:15}} 
+                            placeholder="Paste the cipher (symbols) to decode..."
+                            value={decodeInput}
+                            onChange={(e) => setDecodeInput(e.target.value)}
+                        />
+                        
+                        <button className="btn-gold" style={{width:'100%', marginBottom:18, padding:'12px', fontWeight:'700', letterSpacing:'0.1em'}} onClick={() => setDecodedResult(decrypt(decodeInput))}>
+                            <i className="fas fa-microchip" style={{marginRight:10}}/> EXECUTE DECRYPTION
+                        </button>
+                        
+                        <div className="mono" style={{background:'rgba(255,255,255,0.03)', padding:15, borderRadius:4, border:'1px solid var(--border-dim)'}}>
+                            <p style={{fontSize:'0.55rem', color:'#556', marginBottom:8, textTransform:'uppercase'}}>Decoded Plaintext:</p>
+                            <p style={{fontSize:'1rem', color:'#fff', minHeight:25, fontWeight:'500'}}>
+                                {decodedResult || "---"}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style={{textAlign:'center', marginTop:10, opacity:0.5}}>
+                    <p className="mono" style={{fontSize:'0.5rem', color:'var(--gold)', letterSpacing:'0.3em'}}>FBI ENIGMA v4.1 // SECURE PROTOCOL ACTIVE</p>
+                </div>
             </div>
-            <div style={{display:'flex',gap:8}}>
-                <input className="fbi-input" style={{flex:1}} placeholder="Encrypted message..." value={chatMsg} onChange={e=>setChatMsg(e.target.value)} onKeyDown={e=>e.key==='Enter'&&sendChat()}/>
-                <button className="btn-gold" style={{padding:'12px 18px'}} onClick={sendChat}><i className="fas fa-paper-plane"/></button>
-            </div>
-        </div>
-    );
+        );
+    };
 
     const LogsTab = () => (
         <div className="animate-fade-up" style={{display:'flex',flexDirection:'column',gap:14}}>
